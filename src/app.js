@@ -12,6 +12,9 @@ app.use(cors({
 }))
 
 
+import Route from "./routes/healthcheck.routes.js"
+
+app.use("/api/v1/healthcheck" , Route)
 
 app.get("/", (req, res) => {
     res.send("This is new App ");
