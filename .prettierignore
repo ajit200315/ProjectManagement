@@ -1,3 +1,8 @@
 node_modules
 .env
 package-lock.json
+
+# Build output: generated, minified, and not ours to format.
+dist
+client/dist
+coverage

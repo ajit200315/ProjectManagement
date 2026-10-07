@@ -4,6 +4,12 @@ import react from "@vitejs/plugin-react";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./src/test/setup.js",
+    css: false,
+  },
   server: {
     // The client always calls the API with relative URLs, so in development
     // the dev server forwards /api to the backend. That keeps dev and
