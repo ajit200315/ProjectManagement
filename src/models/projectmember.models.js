@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { AvailableUserRole, UserRolesEnum } from "../utils/constant";
+import { AvailableUserRoles, UserRolesEnum } from "../utils/constant.js";
 
 const projectMemberSchema = new Schema(
   {
@@ -8,19 +8,22 @@ const projectMemberSchema = new Schema(
       ref: "User",
       required: true,
     },
-    Project: {
-      tpye: Schema.Types.ObjectId,
+    project: {
+      type: Schema.Types.ObjectId,
       ref: "Project",
       required: true,
     },
     role: {
       type: String,
-      enum: AvailableUserRole,
+      enum: AvailableUserRoles,
       default: UserRolesEnum.MEMBER,
     },
   },
   { timestamps: true },
 );
+
+// A user can hold at most one role per project.
+projectMemberSchema.index({ project: 1, user: 1 }, { unique: true });
 
 export const ProjectMember = mongoose.model(
   "ProjectMember",

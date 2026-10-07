@@ -5,7 +5,6 @@ const projectSchema = new Schema(
     name: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
     },
     description: {
@@ -19,5 +18,8 @@ const projectSchema = new Schema(
   },
   { timestamps: true },
 );
+
+// Project names are unique per owner, not globally.
+projectSchema.index({ createdBy: 1, name: 1 }, { unique: true });
 
 export const Project = mongoose.model("Project", projectSchema);

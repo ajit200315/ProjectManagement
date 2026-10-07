@@ -1,11 +1,12 @@
 import mongoose, { Schema } from "mongoose";
-import { AvailableTaskStatus, TaskStatusEnum } from "../utils/constant";
+import { AvailableTaskStatus, TaskStatusEnum } from "../utils/constant.js";
 
 const taskSchema = new Schema(
   {
     title: {
       type: String,
       required: true,
+      trim: true,
     },
     description: String,
     project: {
@@ -40,4 +41,4 @@ const taskSchema = new Schema(
   { timestamps: true },
 );
 
-export const task = mongoose.model("task", taskSchema);
+export const Task = mongoose.model("Task", taskSchema);
