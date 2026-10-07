@@ -274,12 +274,24 @@ that breaks at the first login.
 
 ### Email deliverability
 
-The sender address must be on a domain verified with your provider, or every
-send is rejected. Mailtrap's shared demo domain (`demomailtrap.co`) only
-delivers to the account owner's own address, which is fine while testing but
-means **no other user will ever receive a verification or reset email**.
-Before real users sign up, verify a domain with your provider and point
-`MAIL_FROM_ADDRESS` at it.
+Mailtrap has two separate products, and they behave very differently:
+
+|                         | Host                       | What happens to the mail                                                     |
+| ----------------------- | -------------------------- | ---------------------------------------------------------------------------- |
+| Email Testing (sandbox) | `sandbox.smtp.mailtrap.io` | Captured in the Mailtrap web UI. Never delivered, but every recipient works. |
+| Sending (live)          | `live.smtp.mailtrap.io`    | Actually delivered — subject to the restrictions below.                      |
+
+Development uses the sandbox, so verification and reset mail can be tested
+for any address without sending anything to a real person.
+
+For live sending, the sender must be on a domain verified with the provider
+or the message is rejected. Mailtrap's shared demo domain (`demomailtrap.co`)
+is worse than that: it accepts the message over SMTP, returns `250 OK`, and
+then only delivers to the account owner's own signup address. Anything else
+is dropped silently — **the send looks successful and no one receives it**.
+
+Before real users sign up, verify a real domain in Mailtrap, point
+`MAIL_FROM_ADDRESS` at it, and switch the host to `live.smtp.mailtrap.io`.
 
 Mail failures are logged, never thrown: registration still succeeds if the
 mail cannot be sent, the user just never receives the link. Check the server
