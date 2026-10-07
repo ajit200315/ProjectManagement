@@ -5,8 +5,9 @@ const sendEmail = async (options) => {
   const mailGenerator = new Mailgen({
     theme: "default",
     product: {
-      name: "Task Manager",
-      link: "https://taskmangerLink.com",
+      name: process.env.MAIL_FROM_NAME || "Project Management",
+      // Points at the running app rather than a placeholder domain.
+      link: process.env.CLIENT_URL || "http://localhost:5173",
     },
   });
   const emailTextual = mailGenerator.generatePlaintext(options.mailgenContent);
@@ -14,15 +15,22 @@ const sendEmail = async (options) => {
 
   const transporter = nodemailer.createTransport({
     host: process.env.MAILTRAP_SMTP_HOST,
-    port: process.env.MAILTRAP_SMTP_PORT,
+    port: Number(process.env.MAILTRAP_SMTP_PORT) || 587,
+    // 587 is STARTTLS, not implicit TLS; only 465 is secure-on-connect.
+    secure: Number(process.env.MAILTRAP_SMTP_PORT) === 465,
     auth: {
       user: process.env.MAILTRAP_SMTP_USER,
       pass: process.env.MAILTRAP_SMTP_PASS,
     },
   });
 
+  // Providers reject a sender whose domain is not verified on the account,
+  // so this must be configurable rather than a hardcoded placeholder.
+  const fromAddress = process.env.MAIL_FROM_ADDRESS || "no-reply@example.com";
+  const fromName = process.env.MAIL_FROM_NAME || "Project Management";
+
   const mail = {
-    from: "mail.taskmanager@example.com",
+    from: `"${fromName}" <${fromAddress}>`,
     to: options.email,
     subject: options.subject,
     text: emailTextual,

@@ -272,6 +272,19 @@ secrets match, or if either is still a placeholder or under 32 characters
 in production. A failed deploy with a clear message beats a running one
 that breaks at the first login.
 
+### Email deliverability
+
+The sender address must be on a domain verified with your provider, or every
+send is rejected. Mailtrap's shared demo domain (`demomailtrap.co`) only
+delivers to the account owner's own address, which is fine while testing but
+means **no other user will ever receive a verification or reset email**.
+Before real users sign up, verify a domain with your provider and point
+`MAIL_FROM_ADDRESS` at it.
+
+Mail failures are logged, never thrown: registration still succeeds if the
+mail cannot be sent, the user just never receives the link. Check the server
+log rather than assuming a silent success.
+
 ### Two separate domains instead
 
 If you would rather host the client separately (Vercel, Netlify, a CDN):
