@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { projectApi, ROLE_LABEL } from "../api/client.js";
 import { useResource } from "../hooks/useResource.js";
+import Pager from "../components/Pager.jsx";
 import Layout from "../components/Layout.jsx";
 import Spinner from "../components/Spinner.jsx";
 import ErrorBanner from "../components/ErrorBanner.jsx";
@@ -70,13 +71,17 @@ const NewProjectForm = ({ onCreated }) => {
 };
 
 const Projects = () => {
-  const load = useCallback(() => projectApi.list(), []);
+  const [page, setPage] = useState(1);
+  const load = useCallback(() => projectApi.list({ page }), [page]);
   const { data, loading, error, refresh, setError } = useResource(load);
-  const projects = data ?? [];
+  const projects = data?.items ?? [];
 
   const create = async (payload) => {
     await projectApi.create(payload);
-    await refresh();
+    // A new project sorts to the top, so show it rather than leaving the
+    // user on a page where it is not.
+    if (page !== 1) setPage(1);
+    else await refresh();
   };
 
   return (
@@ -122,6 +127,8 @@ const Projects = () => {
           </Link>
         ))}
       </div>
+
+      <Pager pagination={data?.pagination} onPage={setPage} busy={loading} />
     </Layout>
   );
 };

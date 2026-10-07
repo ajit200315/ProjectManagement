@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { STATUS_LABEL, TASK_STATUS, taskApi } from "../api/client.js";
+import {
+  PRIORITY_LABEL,
+  STATUS_LABEL,
+  TASK_PRIORITY,
+  TASK_STATUS,
+  taskApi,
+} from "../api/client.js";
 import TaskCard from "./TaskCard.jsx";
 import ErrorBanner from "./ErrorBanner.jsx";
 
@@ -9,13 +15,21 @@ const NewTaskForm = ({ projectId, members, onCreated }) => {
     title: "",
     description: "",
     assignedTo: "",
+    priority: TASK_PRIORITY.MEDIUM,
+    dueDate: "",
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
   const close = () => {
     setOpen(false);
-    setForm({ title: "", description: "", assignedTo: "" });
+    setForm({
+      title: "",
+      description: "",
+      assignedTo: "",
+      priority: TASK_PRIORITY.MEDIUM,
+      dueDate: "",
+    });
     setError("");
   };
 
@@ -30,6 +44,8 @@ const NewTaskForm = ({ projectId, members, onCreated }) => {
         // The API validates assignedTo as a mongo id, so omit it entirely
         // rather than sending an empty string.
         assignedTo: form.assignedTo || undefined,
+        priority: form.priority,
+        dueDate: form.dueDate || undefined,
       });
       await onCreated();
       close();
@@ -77,6 +93,23 @@ const NewTaskForm = ({ projectId, members, onCreated }) => {
           </option>
         ))}
       </select>
+      <select
+        aria-label="Priority"
+        value={form.priority}
+        onChange={(e) => setForm({ ...form, priority: e.target.value })}
+      >
+        {Object.values(TASK_PRIORITY).map((value) => (
+          <option key={value} value={value}>
+            {PRIORITY_LABEL[value]}
+          </option>
+        ))}
+      </select>
+      <input
+        type="date"
+        aria-label="Due date"
+        value={form.dueDate}
+        onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+      />
       <div className="actions">
         <button type="submit" disabled={saving}>
           {saving ? "Creating…" : "Create task"}
@@ -89,7 +122,15 @@ const NewTaskForm = ({ projectId, members, onCreated }) => {
   );
 };
 
-const TaskBoard = ({ projectId, tasks, members, canManage, onChanged }) => {
+const TaskBoard = ({
+  projectId,
+  tasks,
+  members,
+  canManage,
+  onChanged,
+  filters,
+  onFilterChange,
+}) => {
   const columns = Object.values(TASK_STATUS);
 
   return (
@@ -104,6 +145,58 @@ const TaskBoard = ({ projectId, tasks, members, canManage, onChanged }) => {
           />
         )}
       </div>
+
+      {filters && (
+        <div className="filters">
+          <select
+            aria-label="Filter by priority"
+            value={filters.priority}
+            onChange={(e) => onFilterChange({ priority: e.target.value })}
+          >
+            <option value="">Any priority</option>
+            {Object.values(TASK_PRIORITY).map((value) => (
+              <option key={value} value={value}>
+                {PRIORITY_LABEL[value]}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Filter by assignee"
+            value={filters.assignedTo}
+            onChange={(e) => onFilterChange({ assignedTo: e.target.value })}
+          >
+            <option value="">Anyone</option>
+            {members.map((member) => (
+              <option key={member.user._id} value={member.user._id}>
+                {member.user.username}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Sort by"
+            value={filters.sort}
+            onChange={(e) => onFilterChange({ sort: e.target.value })}
+          >
+            <option value="createdAt">Newest first</option>
+            <option value="dueDate">Due date</option>
+            <option value="priority">Priority</option>
+            <option value="title">Title</option>
+          </select>
+
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={filters.overdue === "true"}
+              onChange={(e) =>
+                onFilterChange({ overdue: e.target.checked ? "true" : "" })
+              }
+            />
+            Overdue only
+          </label>
+        </div>
+      )}
 
       <div className="board">
         {columns.map((status) => {

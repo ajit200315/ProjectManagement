@@ -2,11 +2,16 @@ import { useCallback, useState } from "react";
 import { noteApi } from "../api/client.js";
 import { useResource } from "../hooks/useResource.js";
 import ErrorBanner from "./ErrorBanner.jsx";
+import Pager from "./Pager.jsx";
 
 const NotesPanel = ({ projectId, canManage }) => {
-  const load = useCallback(() => noteApi.list(projectId), [projectId]);
+  const [page, setPage] = useState(1);
+  const load = useCallback(
+    () => noteApi.list(projectId, { page, limit: 10 }),
+    [projectId, page],
+  );
   const { data, loading, error, refresh, setError } = useResource(load);
-  const notes = data ?? [];
+  const notes = data?.items ?? [];
 
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState(null);
@@ -33,6 +38,8 @@ const NotesPanel = ({ projectId, canManage }) => {
     return run(async () => {
       await noteApi.create(projectId, content);
       setDraft("");
+      // Newest sorts first, so jump back to page one to reveal it.
+      setPage(1);
     });
   };
 
@@ -125,6 +132,8 @@ const NotesPanel = ({ projectId, canManage }) => {
           </li>
         ))}
       </ul>
+
+      <Pager pagination={data?.pagination} onPage={setPage} busy={loading} />
 
       {canManage && (
         <form className="note-add" onSubmit={add}>

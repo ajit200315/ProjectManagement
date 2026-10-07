@@ -717,3 +717,127 @@ textarea:focus-visible {
 .panel .alert {
   margin-bottom: 0.75rem;
 }
+
+/* ---------- filters, pager, priorities, attachments ---------- */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.filters select {
+  font-size: 0.85rem;
+}
+
+.check {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.check input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+/* Priority reads by colour as well as by label, but never by colour alone. */
+.badge.priority-urgent {
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+}
+
+.badge.priority-high {
+  color: var(--warn-text);
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+}
+
+.badge.priority-low {
+  color: var(--muted);
+}
+
+.badge.overdue {
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+}
+
+.attachments {
+  margin: 0.6rem 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+.label-row {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+}
+
+.attachment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.attachment-list li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.attachment-list li .link {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-input {
+  width: 100%;
+  padding: 0.35rem;
+  margin: 0;
+  font-size: 0.8rem;
+  background: none;
+  border: 1px dashed var(--border);
+}
+
+.file-input::file-selector-button {
+  padding: 0.25rem 0.6rem;
+  margin-right: 0.5rem;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Date inputs render their picker icon dark-on-dark otherwise. */
+@media (prefers-color-scheme: dark) {
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+}

@@ -155,7 +155,7 @@ export const authApi = {
 };
 
 export const noteApi = {
-  list: (projectId) => api(`/projects/${projectId}/notes`),
+  list: (projectId, params) => api(`/projects/${projectId}/notes${qs(params)}`),
   create: (projectId, content) =>
     api(`/projects/${projectId}/notes`, {
       method: "POST",
@@ -170,8 +170,17 @@ export const noteApi = {
     api(`/projects/${projectId}/notes/${noteId}`, { method: "DELETE" }),
 };
 
+/** Drops empty values so they do not show up as `?status=` in the URL. */
+const qs = (params = {}) => {
+  const entries = Object.entries(params).filter(
+    ([, value]) => value !== undefined && value !== null && value !== "",
+  );
+  const query = new URLSearchParams(entries).toString();
+  return query ? `?${query}` : "";
+};
+
 export const projectApi = {
-  list: () => api("/projects"),
+  list: (params) => api(`/projects${qs(params)}`),
   get: (projectId) => api(`/projects/${projectId}`),
   create: (payload) => api("/projects", { method: "POST", body: payload }),
   update: (projectId, payload) =>
@@ -193,12 +202,7 @@ export const memberApi = {
 };
 
 export const taskApi = {
-  list: (projectId, params = {}) => {
-    const query = new URLSearchParams(
-      Object.entries(params).filter(([, value]) => value),
-    ).toString();
-    return api(`/projects/${projectId}/tasks${query ? `?${query}` : ""}`);
-  },
+  list: (projectId, params) => api(`/projects/${projectId}/tasks${qs(params)}`),
   get: (projectId, taskId) => api(`/projects/${projectId}/tasks/${taskId}`),
   create: (projectId, payload) =>
     api(`/projects/${projectId}/tasks`, { method: "POST", body: payload }),
@@ -224,6 +228,82 @@ export const taskApi = {
     api(`/projects/${projectId}/tasks/${taskId}/subtasks/${subTaskId}`, {
       method: "DELETE",
     }),
+};
+
+export const attachmentApi = {
+  list: (projectId, taskId) =>
+    api(`/projects/${projectId}/tasks/${taskId}/attachments`),
+
+  /**
+   * Sends multipart/form-data. The Content-Type header is deliberately not
+   * set: the browser must add it itself so it can include the multipart
+   * boundary, which we cannot know.
+   */
+  upload: async (projectId, taskId, file) => {
+    const body = new FormData();
+    body.append("file", file);
+
+    const res = await fetch(
+      `${BASE_URL}/api/v1/projects/${projectId}/tasks/${taskId}/attachments`,
+      {
+        method: "POST",
+        headers: tokens.access
+          ? { Authorization: `Bearer ${tokens.access}` }
+          : {},
+        body,
+      },
+    );
+    return parse(res);
+  },
+
+  remove: (projectId, taskId, attachmentId) =>
+    api(`/projects/${projectId}/tasks/${taskId}/attachments/${attachmentId}`, {
+      method: "DELETE",
+    }),
+
+  /**
+   * The download route needs an Authorization header, so a plain link cannot
+   * fetch it. Pull the bytes, hand them to the browser as a blob, and revoke
+   * the object URL afterwards so it is not retained for the session.
+   */
+  download: async (projectId, taskId, attachment) => {
+    const res = await fetch(
+      `${BASE_URL}/api/v1/projects/${projectId}/tasks/${taskId}/attachments/${attachment._id}`,
+      {
+        headers: tokens.access
+          ? { Authorization: `Bearer ${tokens.access}` }
+          : {},
+      },
+    );
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(res.status, body.message || "Download failed");
+    }
+
+    const url = URL.createObjectURL(await res.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = attachment.filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  },
+};
+
+export const TASK_PRIORITY = {
+  LOW: "low",
+  MEDIUM: "medium",
+  HIGH: "high",
+  URGENT: "urgent",
+};
+
+export const PRIORITY_LABEL = {
+  [TASK_PRIORITY.LOW]: "Low",
+  [TASK_PRIORITY.MEDIUM]: "Medium",
+  [TASK_PRIORITY.HIGH]: "High",
+  [TASK_PRIORITY.URGENT]: "Urgent",
 };
 
 export const ROLES = {

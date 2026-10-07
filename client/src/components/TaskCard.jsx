@@ -1,7 +1,32 @@
 import { useState } from "react";
-import { STATUS_LABEL, TASK_STATUS, taskApi } from "../api/client.js";
+import {
+  PRIORITY_LABEL,
+  STATUS_LABEL,
+  TASK_PRIORITY,
+  TASK_STATUS,
+  taskApi,
+} from "../api/client.js";
 import ErrorBanner from "./ErrorBanner.jsx";
 import ConfirmButton from "./ConfirmButton.jsx";
+import Attachments from "./Attachments.jsx";
+
+/** Flags a date that has passed, unless the task is already done. */
+const DueDate = ({ value, status }) => {
+  // Captured once per mount rather than read on every render: the clock is
+  // not a pure input, and re-deriving it would make the badge flip state
+  // during an unrelated re-render at exactly the wrong moment.
+  const [now] = useState(() => Date.now());
+
+  const date = new Date(value);
+  const overdue = date.getTime() < now && status !== TASK_STATUS.DONE;
+
+  return (
+    <span className={`badge ${overdue ? "overdue" : "dim"}`}>
+      {overdue ? "Overdue " : "Due "}
+      {date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+    </span>
+  );
+};
 
 const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
   const [expanded, setExpanded] = useState(false);
@@ -10,8 +35,11 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
     title: "",
     description: "",
     assignedTo: "",
+    priority: TASK_PRIORITY.MEDIUM,
+    dueDate: "",
   });
   const [subtasks, setSubtasks] = useState(null);
+  const [attachments, setAttachments] = useState([]);
   const [newSubTask, setNewSubTask] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -25,6 +53,7 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
       try {
         const detail = await taskApi.get(projectId, task._id);
         setSubtasks(detail.subtasks ?? []);
+        setAttachments(detail.attachments ?? []);
       } catch (err) {
         setError(err.message);
         setSubtasks([]);
@@ -49,6 +78,9 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
       title: task.title,
       description: task.description ?? "",
       assignedTo: task.assignedTo?._id ?? "",
+      priority: task.priority ?? TASK_PRIORITY.MEDIUM,
+      // <input type="date"> wants YYYY-MM-DD, not an ISO timestamp.
+      dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
     });
     setEditing(true);
     setExpanded(true);
@@ -62,6 +94,8 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
         description: draft.description,
         // "" would fail the mongo-id check; null clears the assignee.
         assignedTo: draft.assignedTo || null,
+        priority: draft.priority,
+        dueDate: draft.dueDate,
       });
       setEditing(false);
       await onChanged();
@@ -157,6 +191,12 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
         ) : (
           <span className="badge dim">Unassigned</span>
         )}
+        {task.priority && task.priority !== TASK_PRIORITY.MEDIUM && (
+          <span className={`badge priority-${task.priority}`}>
+            {PRIORITY_LABEL[task.priority]}
+          </span>
+        )}
+        {task.dueDate && <DueDate value={task.dueDate} status={task.status} />}
         {subtasks?.length > 0 && (
           <span className="badge dim">
             {done}/{subtasks.length} done
@@ -194,6 +234,23 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
               </option>
             ))}
           </select>
+          <select
+            aria-label="Priority"
+            value={draft.priority}
+            onChange={(e) => setDraft({ ...draft, priority: e.target.value })}
+          >
+            {Object.values(TASK_PRIORITY).map((value) => (
+              <option key={value} value={value}>
+                {PRIORITY_LABEL[value]}
+              </option>
+            ))}
+          </select>
+          <input
+            type="date"
+            aria-label="Due date"
+            value={draft.dueDate}
+            onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })}
+          />
           <div className="actions">
             <button type="submit" className="small" disabled={busy}>
               Save
@@ -265,6 +322,17 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
           {subtasks !== null && subtasks.length === 0 && (
             <p className="muted small">No subtasks.</p>
           )}
+
+          <Attachments
+            projectId={projectId}
+            taskId={task._id}
+            attachments={attachments}
+            canDelete={canManage}
+            onChanged={async () => {
+              const detail = await taskApi.get(projectId, task._id);
+              setAttachments(detail.attachments ?? []);
+            }}
+          />
 
           {canManage && (
             <form className="subtask-add" onSubmit={addSubTask}>

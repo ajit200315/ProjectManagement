@@ -8,6 +8,7 @@ import ErrorBanner from "../components/ErrorBanner.jsx";
 import TaskBoard from "../components/TaskBoard.jsx";
 import MembersPanel from "../components/MembersPanel.jsx";
 import NotesPanel from "../components/NotesPanel.jsx";
+import Pager from "../components/Pager.jsx";
 import ConfirmButton from "../components/ConfirmButton.jsx";
 import { useResource } from "../hooks/useResource.js";
 
@@ -17,6 +18,13 @@ const ProjectDetail = () => {
   const navigate = useNavigate();
 
   const [actionError, setActionError] = useState("");
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({
+    priority: "",
+    assignedTo: "",
+    overdue: "",
+    sort: "createdAt",
+  });
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({ name: "", description: "" });
   const [saving, setSaving] = useState(false);
@@ -25,13 +33,21 @@ const ProjectDetail = () => {
     const [project, members, tasks] = await Promise.all([
       projectApi.get(projectId),
       memberApi.list(projectId),
-      taskApi.list(projectId),
+      // The board shows all three columns at once, so it asks for a large
+      // page and offers a pager only when a project outgrows it.
+      taskApi.list(projectId, { ...filters, page, limit: 50 }),
     ]);
     return { project, members, tasks };
-  }, [projectId]);
+  }, [projectId, page, filters]);
 
   const { data, loading, error: fatal, refresh } = useResource(load);
-  const { project, members = [], tasks = [] } = data ?? {};
+  const { project, members = [], tasks } = data ?? {};
+  const taskItems = tasks?.items ?? [];
+
+  const updateFilter = (patch) => {
+    setPage(1);
+    setFilters((current) => ({ ...current, ...patch }));
+  };
 
   // The role comes from the member list rather than being passed in, so a
   // direct link or a refresh still knows what this user is allowed to do.
@@ -150,13 +166,22 @@ const ProjectDetail = () => {
       <ErrorBanner error={actionError} onDismiss={() => setActionError("")} />
 
       <div className="split">
-        <TaskBoard
-          projectId={projectId}
-          tasks={tasks}
-          members={members}
-          canManage={can.manageTasks(role)}
-          onChanged={refresh}
-        />
+        <div>
+          <TaskBoard
+            projectId={projectId}
+            tasks={taskItems}
+            members={members}
+            canManage={can.manageTasks(role)}
+            onChanged={refresh}
+            filters={filters}
+            onFilterChange={updateFilter}
+          />
+          <Pager
+            pagination={tasks?.pagination}
+            onPage={setPage}
+            busy={loading}
+          />
+        </div>
 
         <div className="stack">
           <MembersPanel
