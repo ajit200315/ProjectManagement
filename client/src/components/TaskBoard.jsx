@@ -122,6 +122,7 @@ const TaskBoard = ({ projectId, tasks, members, canManage, onChanged }) => {
                   key={task._id}
                   projectId={projectId}
                   task={task}
+                  members={members}
                   canManage={canManage}
                   onChanged={onChanged}
                 />

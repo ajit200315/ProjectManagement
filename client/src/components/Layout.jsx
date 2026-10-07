@@ -11,7 +11,14 @@ const Layout = ({ children }) => {
           Project Management
         </Link>
         <div className="topbar-right">
-          <span className="muted">{user.username}</span>
+          <Link to="/account" className="muted">
+            {user.username}
+          </Link>
+          {!user.isEmailVerified && (
+            <Link to="/account" className="badge warn">
+              Verify email
+            </Link>
+          )}
           <button type="button" className="ghost small" onClick={logout}>
             Sign out
           </button>

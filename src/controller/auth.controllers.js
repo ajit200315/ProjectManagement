@@ -9,6 +9,7 @@ import {
   forgotPasswordMailgenContent,
   sendEmail,
 } from "../utils/mail.js";
+import { emailVerificationUrl, passwordResetUrl } from "../utils/urls.js";
 
 // Cookies must not be flagged secure over plain http in local development,
 // or the browser silently drops them.
@@ -64,7 +65,7 @@ const registerUser = asyncHandler(async (req, res) => {
     subject: "Please verify your email",
     mailgenContent: emailVerificationMailgenContent(
       user.username,
-      `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email/${unHashedToken}`,
+      emailVerificationUrl(unHashedToken),
     ),
   });
 
@@ -209,7 +210,7 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
     subject: "Please verify your email",
     mailgenContent: emailVerificationMailgenContent(
       user.username,
-      `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email/${unHashedToken}`,
+      emailVerificationUrl(unHashedToken),
     ),
   });
 
@@ -280,7 +281,7 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
       subject: "Password reset request",
       mailgenContent: forgotPasswordMailgenContent(
         user.username,
-        `${process.env.FORGOT_PASSWORD_REDIRECT_URL}/${unHashedToken}`,
+        passwordResetUrl(unHashedToken),
       ),
     });
   }

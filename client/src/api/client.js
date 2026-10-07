@@ -130,6 +130,35 @@ export const authApi = {
       body: { email },
       auth: false,
     }),
+
+  resetPassword: (resetToken, newPassword) =>
+    api(`/auth/reset-password/${resetToken}`, {
+      method: "POST",
+      body: { newPassword },
+      auth: false,
+    }),
+
+  verifyEmail: (verificationToken) =>
+    api(`/auth/verify-email/${verificationToken}`, { auth: false }),
+
+  resendVerification: () =>
+    api("/auth/resend-email-verification", { method: "POST" }),
+};
+
+export const noteApi = {
+  list: (projectId) => api(`/projects/${projectId}/notes`),
+  create: (projectId, content) =>
+    api(`/projects/${projectId}/notes`, {
+      method: "POST",
+      body: { content },
+    }),
+  update: (projectId, noteId, content) =>
+    api(`/projects/${projectId}/notes/${noteId}`, {
+      method: "PUT",
+      body: { content },
+    }),
+  remove: (projectId, noteId) =>
+    api(`/projects/${projectId}/notes/${noteId}`, { method: "DELETE" }),
 };
 
 export const projectApi = {
@@ -217,5 +246,6 @@ export const can = {
   manageProject: (role) => role === ROLES.ADMIN,
   manageMembers: (role) => role === ROLES.ADMIN,
   manageTasks: (role) => role === ROLES.ADMIN || role === ROLES.PROJECT_ADMIN,
+  manageNotes: (role) => role === ROLES.ADMIN,
   toggleSubTask: () => true,
 };

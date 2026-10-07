@@ -118,7 +118,9 @@ const updateTaskValidator = () => {
     body("title").optional().trim().notEmpty().withMessage("Title is required"),
     body("description").optional().trim(),
     body("assignedTo")
-      .optional()
+      // null is how the client clears an assignee; the default optional()
+      // only skips undefined, so null would be rejected as a bad id.
+      .optional({ values: "null" })
       .isMongoId()
       .withMessage("Assignee id is invalid"),
     body("status")

@@ -26,7 +26,7 @@ const child = spawn("npx", ["nodemon", "src/index.js"], {
     REFRESH_TOKEN_SECRET: "dev-refresh-secret-not-for-production",
     ACCESS_TOKEN_EXPIRY: "1d",
     REFRESH_TOKEN_EXPIRY: "10d",
-    FORGOT_PASSWORD_REDIRECT_URL: "http://localhost:5173/reset-password",
+    CLIENT_URL: "http://localhost:5173",
     ...process.env,
     MONGO_URI: uri,
   },

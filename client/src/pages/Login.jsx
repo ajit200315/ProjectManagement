@@ -8,6 +8,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const notice = location.state?.notice;
   const [form, setForm] = useState({ identifier: "", password: "" });
   const [error, setError] = useState("");
   const [fields, setFields] = useState({});
@@ -54,6 +55,7 @@ const Login = () => {
         <p className="muted">Use your email address or your username.</p>
 
         <form onSubmit={handleSubmit} noValidate>
+          {notice && <p className="notice">{notice}</p>}
           {error && <p className="alert">{error}</p>}
 
           <label htmlFor="identifier">Email or username</label>

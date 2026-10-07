@@ -7,6 +7,8 @@ import Spinner from "../components/Spinner.jsx";
 import ErrorBanner from "../components/ErrorBanner.jsx";
 import TaskBoard from "../components/TaskBoard.jsx";
 import MembersPanel from "../components/MembersPanel.jsx";
+import NotesPanel from "../components/NotesPanel.jsx";
+import ConfirmButton from "../components/ConfirmButton.jsx";
 import { useResource } from "../hooks/useResource.js";
 
 const ProjectDetail = () => {
@@ -15,6 +17,9 @@ const ProjectDetail = () => {
   const navigate = useNavigate();
 
   const [actionError, setActionError] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState({ name: "", description: "" });
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     const [project, members, tasks] = await Promise.all([
@@ -38,6 +43,26 @@ const ProjectDetail = () => {
       navigate("/", { replace: true });
     } catch (err) {
       setActionError(err.message);
+    }
+  };
+
+  const startEditing = () => {
+    setDraft({ name: project.name, description: project.description ?? "" });
+    setEditing(true);
+  };
+
+  const saveProject = async (event) => {
+    event.preventDefault();
+    setActionError("");
+    setSaving(true);
+    try {
+      await projectApi.update(projectId, draft);
+      await refresh();
+      setEditing(false);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -67,20 +92,58 @@ const ProjectDetail = () => {
       </Link>
 
       <div className="page-head">
-        <div>
-          <h1>{project.name}</h1>
-          {project.description && (
-            <p className="muted">{project.description}</p>
-          )}
-        </div>
-        {can.manageProject(role) && (
-          <button
-            type="button"
-            className="ghost danger"
-            onClick={deleteProject}
-          >
-            Delete project
-          </button>
+        {editing ? (
+          <form className="inline-form" onSubmit={saveProject}>
+            <input
+              aria-label="Project name"
+              value={draft.name}
+              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              autoFocus
+              required
+            />
+            <input
+              aria-label="Project description"
+              placeholder="Description (optional)"
+              value={draft.description}
+              onChange={(e) =>
+                setDraft({ ...draft, description: e.target.value })
+              }
+            />
+            <div className="actions">
+              <button type="submit" disabled={saving}>
+                {saving ? "Saving…" : "Save"}
+              </button>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setEditing(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <div>
+              <h1>{project.name}</h1>
+              {project.description && (
+                <p className="muted">{project.description}</p>
+              )}
+            </div>
+            {can.manageProject(role) && (
+              <div className="actions">
+                <button type="button" className="ghost" onClick={startEditing}>
+                  Edit
+                </button>
+                <ConfirmButton
+                  onConfirm={deleteProject}
+                  confirmLabel="Really delete?"
+                >
+                  Delete project
+                </ConfirmButton>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -95,13 +158,16 @@ const ProjectDetail = () => {
           onChanged={refresh}
         />
 
-        <MembersPanel
-          projectId={projectId}
-          members={members}
-          canManage={can.manageMembers(role)}
-          currentUserId={user._id}
-          onChanged={refresh}
-        />
+        <div className="stack">
+          <MembersPanel
+            projectId={projectId}
+            members={members}
+            canManage={can.manageMembers(role)}
+            currentUserId={user._id}
+            onChanged={refresh}
+          />
+          <NotesPanel projectId={projectId} canManage={can.manageNotes(role)} />
+        </div>
       </div>
     </Layout>
   );

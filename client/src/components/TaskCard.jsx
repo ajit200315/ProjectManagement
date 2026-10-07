@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { STATUS_LABEL, TASK_STATUS, taskApi } from "../api/client.js";
 import ErrorBanner from "./ErrorBanner.jsx";
+import ConfirmButton from "./ConfirmButton.jsx";
 
-const TaskCard = ({ projectId, task, canManage, onChanged }) => {
+const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
   const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState({
+    title: "",
+    description: "",
+    assignedTo: "",
+  });
   const [subtasks, setSubtasks] = useState(null);
   const [newSubTask, setNewSubTask] = useState("");
   const [busy, setBusy] = useState(false);
@@ -35,6 +42,30 @@ const TaskCard = ({ projectId, task, canManage, onChanged }) => {
     } finally {
       setBusy(false);
     }
+  };
+
+  const startEditing = () => {
+    setDraft({
+      title: task.title,
+      description: task.description ?? "",
+      assignedTo: task.assignedTo?._id ?? "",
+    });
+    setEditing(true);
+    setExpanded(true);
+  };
+
+  const saveEdit = (event) => {
+    event.preventDefault();
+    return run(async () => {
+      await taskApi.update(projectId, task._id, {
+        title: draft.title,
+        description: draft.description,
+        // "" would fail the mongo-id check; null clears the assignee.
+        assignedTo: draft.assignedTo || null,
+      });
+      setEditing(false);
+      await onChanged();
+    });
   };
 
   const changeStatus = (status) =>
@@ -93,20 +124,32 @@ const TaskCard = ({ projectId, task, canManage, onChanged }) => {
         >
           {expanded ? "▾" : "▸"} {task.title}
         </button>
-        {canManage && (
-          <button
-            type="button"
-            className="link danger"
-            onClick={remove}
-            disabled={busy}
-            aria-label={`Delete ${task.title}`}
-          >
-            ✕
-          </button>
+        {canManage && !editing && (
+          <span className="actions">
+            <button
+              type="button"
+              className="link"
+              onClick={startEditing}
+              disabled={busy}
+              aria-label={`Edit ${task.title}`}
+            >
+              Edit
+            </button>
+            <ConfirmButton
+              className="link danger"
+              onConfirm={remove}
+              disabled={busy}
+              confirmLabel="Sure?"
+            >
+              ✕
+            </ConfirmButton>
+          </span>
         )}
       </div>
 
-      {task.description && <p className="muted small">{task.description}</p>}
+      {task.description && !editing && (
+        <p className="muted small">{task.description}</p>
+      )}
 
       <div className="task-meta">
         {task.assignedTo ? (
@@ -123,7 +166,50 @@ const TaskCard = ({ projectId, task, canManage, onChanged }) => {
 
       <ErrorBanner error={error} onDismiss={() => setError("")} />
 
-      {expanded && (
+      {expanded && editing && (
+        <form className="task-edit" onSubmit={saveEdit}>
+          <input
+            aria-label="Task title"
+            value={draft.title}
+            onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+            required
+          />
+          <input
+            aria-label="Task description"
+            placeholder="Description (optional)"
+            value={draft.description}
+            onChange={(e) =>
+              setDraft({ ...draft, description: e.target.value })
+            }
+          />
+          <select
+            aria-label="Assign to"
+            value={draft.assignedTo}
+            onChange={(e) => setDraft({ ...draft, assignedTo: e.target.value })}
+          >
+            <option value="">Unassigned</option>
+            {members.map((member) => (
+              <option key={member.user._id} value={member.user._id}>
+                {member.user.username}
+              </option>
+            ))}
+          </select>
+          <div className="actions">
+            <button type="submit" className="small" disabled={busy}>
+              Save
+            </button>
+            <button
+              type="button"
+              className="ghost small"
+              onClick={() => setEditing(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {expanded && !editing && (
         <div className="task-body">
           {canManage && (
             <label className="status-row">
@@ -162,15 +248,14 @@ const TaskCard = ({ projectId, task, canManage, onChanged }) => {
                     </span>
                   </label>
                   {canManage && (
-                    <button
-                      type="button"
+                    <ConfirmButton
                       className="link danger"
-                      onClick={() => removeSubTask(subtask)}
+                      onConfirm={() => removeSubTask(subtask)}
                       disabled={busy}
-                      aria-label={`Delete ${subtask.title}`}
+                      confirmLabel="Sure?"
                     >
                       ✕
-                    </button>
+                    </ConfirmButton>
                   )}
                 </li>
               ))}

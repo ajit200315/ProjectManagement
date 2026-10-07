@@ -279,6 +279,22 @@ test("a partial update leaves other fields intact", async () => {
   assert.equal(res.body.data.description, "README");
 });
 
+test("a task can be unassigned by sending assignedTo: null", async () => {
+  const res = await api()
+    .put(`/api/v1/projects/${projectId}/tasks/${taskId}`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ assignedTo: null })
+    .expect(200);
+  assert.equal(res.body.data.assignedTo, null);
+
+  // put it back for the tests that follow
+  await api()
+    .put(`/api/v1/projects/${projectId}/tasks/${taskId}`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ assignedTo: memberId })
+    .expect(200);
+});
+
 test("subtasks: create, tick off as a member, and fetch with the task", async () => {
   const created = await api()
     .post(`/api/v1/projects/${projectId}/tasks/${taskId}/subtasks`)
