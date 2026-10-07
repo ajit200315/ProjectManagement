@@ -27,8 +27,18 @@ cp client/.env.example client/.env
 npm run client          # http://localhost:5173
 ```
 
-`npm start` runs the API without nodemon. `npm test` runs the API test
-suite against an in-memory MongoDB, so it needs no database of its own.
+`npm start` runs the API without nodemon.
+
+### Tests
+
+```bash
+npm test                  # API, against an in-memory MongoDB
+npm --prefix client test  # client, Vitest + Testing Library
+```
+
+Neither needs a database or a running server. CI runs both, plus the client
+lint and build and a repo-wide format check, on every push and pull request
+(`.github/workflows/ci.yml`).
 
 ### No MongoDB installed?
 
@@ -77,6 +87,28 @@ All routes are prefixed `/api/v1`. Responses share one envelope:
 
 Errors use the same shape with `success: false` and an `errors` array.
 
+List endpoints (projects, tasks, notes) are paginated and put the rows under
+`items`:
+
+```json
+{
+  "data": {
+    "items": [],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 0,
+      "totalPages": 1,
+      "hasMore": false
+    }
+  }
+}
+```
+
+They accept `?page` and `?limit`. The page size is clamped, not validated:
+nonsense falls back to 20, and 100 is the ceiling, so no single request can
+pull an entire collection.
+
 ### Auth — `/auth`
 
 | Method | Path                               | Auth | Purpose                                         |
@@ -116,19 +148,33 @@ back either way — `Authorization: Bearer <token>` or the cookie.
 
 ### Tasks — `/projects/:projectId/tasks`
 
-| Method | Path                           | Role                                                   |
-| ------ | ------------------------------ | ------------------------------------------------------ |
-| GET    | `/`                            | any member — filter with `?status=` and `?assignedTo=` |
-| POST   | `/`                            | admin, project_admin                                   |
-| GET    | `/:taskId`                     | any member — includes its subtasks                     |
-| PUT    | `/:taskId`                     | admin, project_admin — partial update                  |
-| DELETE | `/:taskId`                     | admin, project_admin                                   |
-| POST   | `/:taskId/subtasks`            | admin, project_admin                                   |
-| PUT    | `/:taskId/subtasks/:subTaskId` | any member                                             |
-| DELETE | `/:taskId/subtasks/:subTaskId` | admin, project_admin                                   |
+| Method | Path                                 | Role                                           |
+| ------ | ------------------------------------ | ---------------------------------------------- |
+| GET    | `/`                                  | any member — see filters below                 |
+| POST   | `/`                                  | admin, project_admin                           |
+| GET    | `/:taskId`                           | any member — includes subtasks and attachments |
+| PUT    | `/:taskId`                           | admin, project_admin — partial update          |
+| DELETE | `/:taskId`                           | admin, project_admin                           |
+| POST   | `/:taskId/subtasks`                  | admin, project_admin                           |
+| PUT    | `/:taskId/subtasks/:subTaskId`       | any member                                     |
+| DELETE | `/:taskId/subtasks/:subTaskId`       | admin, project_admin                           |
+| GET    | `/:taskId/attachments`               | any member                                     |
+| POST   | `/:taskId/attachments`               | any member — multipart, field `file`, 5MB      |
+| GET    | `/:taskId/attachments/:attachmentId` | any member — downloads the file                |
+| DELETE | `/:taskId/attachments/:attachmentId` | admin, project_admin                           |
 
-`status` is one of `todo`, `in_progress`, `done`. A task can only be
-assigned to someone who is already a member of the project.
+`status` is one of `todo`, `in_progress`, `done`; `priority` is `low`,
+`medium` (the default), `high` or `urgent`; `dueDate` is optional. A task can
+only be assigned to someone who is already a member of the project.
+
+Task lists accept `?status=`, `?priority=`, `?assignedTo=`, `?overdue=true`
+(which never includes completed tasks), and `?sort=`/`?order=` over
+`createdAt`, `dueDate`, `title` or `priority`.
+
+Attachment bytes are stored in MongoDB rather than on disk, because the usual
+hosts have an ephemeral filesystem. Downloads are always served as
+`application/octet-stream` with `Content-Disposition: attachment`, so an
+uploaded HTML or SVG file can never be rendered in the app's own origin.
 
 ### Notes — `/projects/:projectId/notes`
 
@@ -155,8 +201,10 @@ client/src/
   context/               AuthProvider and the useAuth hook
   hooks/useResource.js   load-on-mount + refresh, ignoring stale responses
   components/            Layout, ProtectedRoute, TaskBoard, TaskCard,
-                         MembersPanel, ErrorBanner, Spinner
-  pages/                 Login, Register, Projects, ProjectDetail
+                         MembersPanel, NotesPanel, Attachments, Pager,
+                         ConfirmButton, ErrorBanner, Spinner
+  pages/                 Login, Register, Projects, ProjectDetail, Account,
+                         VerifyEmail, ForgotPassword, ResetPassword
 ```
 
 Screens:
@@ -238,7 +286,7 @@ If you would rather host the client separately (Vercel, Netlify, a CDN):
 
 ### Checklist
 
-- [ ] `npm test` passes
+- [ ] `npm test` and `npm --prefix client test` pass
 - [ ] `npm run build` produces `client/dist`
 - [ ] Real `MONGO_URI`, and the database accepts connections from the host
 - [ ] Fresh secrets, `NODE_ENV=production`, `CLIENT_URL` set
