@@ -1,40 +1,56 @@
-import { useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { authApi } from "../api/client.js";
-import { useResource } from "../hooks/useResource.js";
 
-/** Target of the link in the verification email. */
+/**
+ * Target of the link in the verification email.
+ *
+ * Unlike the other pages this one performs a mutation on load: the token is
+ * consumed by the first request and is invalid afterwards. It therefore must
+ * not use the read-style useResource hook, and must fire exactly once — in
+ * development StrictMode mounts effects twice, and the second call would
+ * report "invalid or expired" for an account that was just verified.
+ */
 const VerifyEmail = () => {
-  const { verificationToken } = useParams();
+  const { verificationToken: token } = useParams();
+  const [state, setState] = useState({ status: "verifying", message: "" });
+  const requested = useRef(null);
 
-  const verify = useCallback(
-    () => authApi.verifyEmail(verificationToken),
-    [verificationToken],
-  );
-  const { data, loading, error } = useResource(verify);
+  useEffect(() => {
+    if (requested.current === token) return;
+    requested.current = token;
+
+    authApi
+      .verifyEmail(token)
+      .then(() => setState({ status: "verified", message: "" }))
+      .catch((err) => setState({ status: "failed", message: err.message }));
+  }, [token]);
 
   return (
     <main className="shell">
       <div className="card">
         <h1>Email verification</h1>
 
-        {loading && <p className="muted">Verifying your email…</p>}
+        {state.status === "verifying" && (
+          <p className="muted">Verifying your email…</p>
+        )}
 
-        {!loading && error && (
+        {state.status === "verified" && (
+          <p className="notice">Your email is verified.</p>
+        )}
+
+        {state.status === "failed" && (
           <>
-            <p className="alert">{error}</p>
+            <p className="alert">{state.message}</p>
             <p className="muted">
-              The link may have expired. Sign in and request a new one from your
-              account page.
+              This link works only once, so it may already have been used. Sign
+              in to check — if your email still shows as unverified, request a
+              new link from your account page.
             </p>
           </>
         )}
 
-        {!loading && data && (
-          <p className="muted">Your email is verified. You can sign in now.</p>
-        )}
-
-        {!loading && (
+        {state.status !== "verifying" && (
           <p className="muted">
             <Link to="/login">Go to sign in</Link>
           </p>

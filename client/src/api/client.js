@@ -1,4 +1,13 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+/**
+ * Empty by default, so every request is relative and goes to whatever origin
+ * served the app. That is what makes the production build work when Express
+ * serves the client itself, and it is proxied to the backend in development
+ * (see vite.config.js).
+ *
+ * Only set VITE_API_URL if the API lives on a different domain than the
+ * client, and remember it is baked in at build time.
+ */
+const BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
 const ACCESS_KEY = "pm.accessToken";
 const REFRESH_KEY = "pm.refreshToken";
