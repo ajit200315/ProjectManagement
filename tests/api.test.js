@@ -41,6 +41,16 @@ test("healthcheck responds", async () => {
   assert.equal(res.body.success, true);
 });
 
+test("responses carry the helmet security headers", async () => {
+  const res = await api().get("/api/v1/healthcheck").expect(200);
+  assert.equal(res.headers["x-content-type-options"], "nosniff");
+  assert.ok(
+    res.headers["x-frame-options"] || res.headers["content-security-policy"],
+  );
+  // helmet strips the header that advertises the stack.
+  assert.equal(res.headers["x-powered-by"], undefined);
+});
+
 test("unknown route returns a 404 as JSON", async () => {
   const res = await api().get("/api/v1/nope").expect(404);
   assert.equal(res.body.success, false);

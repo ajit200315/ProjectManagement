@@ -13,7 +13,8 @@
     "format:check": "prettier --check .",
     "test": "node --test tests/*.test.js",
     "dev:memdb": "node scripts/dev-memory-db.mjs",
-    "client": "npm --prefix client run dev"
+    "client": "npm --prefix client run dev",
+    "build": "npm --prefix client ci && npm --prefix client run build"
   },
   "devDependencies": {
     "mongodb-memory-server": "^11.3.0",
@@ -23,11 +24,14 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
     "express-validator": "^7.3.2",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "mailgen": "^2.0.34",
     "mongodb": "^7.2.0",
