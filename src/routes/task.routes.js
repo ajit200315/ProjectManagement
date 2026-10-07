@@ -9,10 +9,7 @@ import {
   updateSubTask,
   updateTask,
 } from "../controller/task.controllers.js";
-import {
-  validateProjectPermission,
-  verifyJWT,
-} from "../middlewares/auth.middleware.js";
+import { validateProjectPermission } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validator.middleware.js";
 import {
   createSubTaskValidator,
@@ -25,8 +22,6 @@ import { UserRolesEnum } from "../utils/constant.js";
 // Mounted under /api/v1/projects/:projectId/tasks, so :projectId comes
 // from the parent router.
 const router = Router({ mergeParams: true });
-
-router.use(verifyJWT);
 
 const anyMember = [
   UserRolesEnum.ADMIN,
