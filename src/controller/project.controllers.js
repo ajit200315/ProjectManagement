@@ -8,6 +8,7 @@ import { ProjectMember } from "../models/projectmember.models.js";
 import { Task } from "../models/task.models.js";
 import { SubTask } from "../models/subtask.models.js";
 import { ProjectNote } from "../models/note.models.js";
+import { Attachment } from "../models/attachment.models.js";
 import { AvailableUserRoles, UserRolesEnum } from "../utils/constant.js";
 import { getPagination, paginated } from "../utils/pagination.js";
 
@@ -159,6 +160,7 @@ const deleteProject = asyncHandler(async (req, res) => {
   // behind pointing at an id that no longer exists.
   const tasks = await Task.find({ project: project._id }).select("_id");
   await SubTask.deleteMany({ task: { $in: tasks.map((task) => task._id) } });
+  await Attachment.deleteMany({ project: project._id });
   await Task.deleteMany({ project: project._id });
   await ProjectNote.deleteMany({ project: project._id });
   await ProjectMember.deleteMany({ project: project._id });

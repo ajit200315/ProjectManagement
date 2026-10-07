@@ -28,7 +28,8 @@ const member = {
   password: "password123",
 };
 
-let adminToken, memberToken, memberId, projectId, taskId, subTaskId, noteId;
+let adminToken, memberToken, outsiderToken, memberId;
+let projectId, taskId, subTaskId, noteId, attachmentId;
 
 test("boot in-memory mongo", async () => {
   mongo = await MongoMemoryServer.create();
@@ -251,6 +252,12 @@ test("a task cannot be assigned to a non-member", async () => {
     .send({ title: "Nope", assignedTo: outsider.body.data.user._id })
     .expect(400);
   assert.match(res.body.message, /not a member/i);
+
+  const login = await api()
+    .post("/api/v1/auth/login")
+    .send({ email: "outsider@example.com", password: "password123" })
+    .expect(200);
+  outsiderToken = login.body.data.accessToken;
 });
 
 test("a plain member cannot create a task", async () => {
@@ -485,6 +492,118 @@ test("tasks can be sorted by due date", async () => {
     .map((d) => new Date(d).getTime());
   const sorted = [...dates].sort((a, b) => a - b);
   assert.deepEqual(dates, sorted);
+});
+
+test("attachments: upload, list, download and delete", async () => {
+  const contents = Buffer.from("col_a,col_b\n1,2\n");
+
+  const uploaded = await api()
+    .post(`/api/v1/projects/${projectId}/tasks/${taskId}/attachments`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .attach("file", contents, "data.csv")
+    .expect(201);
+
+  assert.equal(uploaded.body.data.filename, "data.csv");
+  assert.equal(uploaded.body.data.size, contents.length);
+  assert.equal(uploaded.body.data.uploadedBy.username, admin.username);
+  // The bytes must never ride along on metadata responses.
+  assert.equal(uploaded.body.data.data, undefined);
+
+  attachmentId = uploaded.body.data._id;
+
+  const list = await api()
+    .get(`/api/v1/projects/${projectId}/tasks/${taskId}/attachments`)
+    .set("Authorization", `Bearer ${memberToken}`)
+    .expect(200);
+  assert.equal(list.body.data.length, 1);
+  assert.equal(list.body.data[0].data, undefined);
+
+  const download = await api()
+    .get(
+      `/api/v1/projects/${projectId}/tasks/${taskId}/attachments/${attachmentId}`,
+    )
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+  assert.deepEqual(download.body, contents);
+});
+
+test("a download is forced, never rendered inline", async () => {
+  const res = await api()
+    .get(
+      `/api/v1/projects/${projectId}/tasks/${taskId}/attachments/${attachmentId}`,
+    )
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+
+  // Serving an uploaded HTML or SVG inline would run it in our own origin.
+  assert.match(res.headers["content-disposition"], /^attachment;/);
+  assert.equal(res.headers["content-type"], "application/octet-stream");
+  assert.equal(res.headers["x-content-type-options"], "nosniff");
+});
+
+test("the task detail includes its attachments", async () => {
+  const res = await api()
+    .get(`/api/v1/projects/${projectId}/tasks/${taskId}`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+  assert.equal(res.body.data.attachments.length, 1);
+  assert.equal(res.body.data.attachments[0].filename, "data.csv");
+});
+
+test("an attachment is not reachable through another task", async () => {
+  const other = await api()
+    .post(`/api/v1/projects/${projectId}/tasks`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ title: "Unrelated" })
+    .expect(201);
+
+  await api()
+    .get(
+      `/api/v1/projects/${projectId}/tasks/${other.body.data._id}/attachments/${attachmentId}`,
+    )
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(404);
+});
+
+test("a non-member cannot download an attachment", async () => {
+  await api()
+    .get(
+      `/api/v1/projects/${projectId}/tasks/${taskId}/attachments/${attachmentId}`,
+    )
+    .set("Authorization", `Bearer ${outsiderToken}`)
+    .expect(403);
+});
+
+test("an oversized upload is refused with 413", async () => {
+  const tooBig = Buffer.alloc(6 * 1024 * 1024, 0x41);
+  const res = await api()
+    .post(`/api/v1/projects/${projectId}/tasks/${taskId}/attachments`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .attach("file", tooBig, "big.bin")
+    .expect(413);
+  assert.match(res.body.message, /too large/i);
+});
+
+test("a plain member may attach, but only a manager may delete", async () => {
+  const mine = await api()
+    .post(`/api/v1/projects/${projectId}/tasks/${taskId}/attachments`)
+    .set("Authorization", `Bearer ${memberToken}`)
+    .attach("file", Buffer.from("notes"), "member.txt")
+    .expect(201);
+
+  await api()
+    .delete(
+      `/api/v1/projects/${projectId}/tasks/${taskId}/attachments/${mine.body.data._id}`,
+    )
+    .set("Authorization", `Bearer ${memberToken}`)
+    .expect(403);
+
+  await api()
+    .delete(
+      `/api/v1/projects/${projectId}/tasks/${taskId}/attachments/${mine.body.data._id}`,
+    )
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
 });
 
 test("notes: create, list and read", async () => {

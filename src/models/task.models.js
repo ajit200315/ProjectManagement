@@ -40,16 +40,6 @@ const taskSchema = new Schema(
     dueDate: {
       type: Date,
     },
-    attachments: {
-      type: [
-        {
-          url: String,
-          mimetype: String,
-          size: Number,
-        },
-      ],
-      default: [],
-    },
   },
   { timestamps: true },
 );

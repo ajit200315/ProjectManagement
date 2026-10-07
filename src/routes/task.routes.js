@@ -18,6 +18,13 @@ import {
   updateTaskValidator,
 } from "../validators/index.js";
 import { UserRolesEnum } from "../utils/constant.js";
+import {
+  deleteAttachment,
+  downloadAttachment,
+  listAttachments,
+  uploadAttachment,
+} from "../controller/attachment.controllers.js";
+import { uploadSingle } from "../middlewares/upload.middleware.js";
 
 // Mounted under /api/v1/projects/:projectId/tasks, so :projectId comes
 // from the parent router.
@@ -70,5 +77,20 @@ router
     updateSubTask,
   )
   .delete(validateProjectPermission(managers), deleteSubTask);
+
+router
+  .route("/:taskId/attachments")
+  .get(validateProjectPermission(anyMember), listAttachments)
+  // Any member may attach a file to the work they are doing.
+  .post(
+    validateProjectPermission(anyMember),
+    uploadSingle("file"),
+    uploadAttachment,
+  );
+
+router
+  .route("/:taskId/attachments/:attachmentId")
+  .get(validateProjectPermission(anyMember), downloadAttachment)
+  .delete(validateProjectPermission(managers), deleteAttachment);
 
 export default router;

@@ -4,6 +4,7 @@ import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { Task } from "../models/task.models.js";
 import { SubTask } from "../models/subtask.models.js";
+import { Attachment } from "../models/attachment.models.js";
 import { ProjectMember } from "../models/projectmember.models.js";
 import { getPagination, paginated } from "../utils/pagination.js";
 import { TaskStatusEnum } from "../utils/constant.js";
@@ -94,14 +95,21 @@ const getTaskById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Task not found");
   }
 
-  const subtasks = await SubTask.find({ task: task._id }).sort({
-    createdAt: 1,
-  });
+  const [subtasks, attachments] = await Promise.all([
+    SubTask.find({ task: task._id }).sort({ createdAt: 1 }),
+    Attachment.find({ task: task._id })
+      .populate("uploadedBy", "username fullName")
+      .sort({ createdAt: -1 }),
+  ]);
 
   return res
     .status(200)
     .json(
-      new ApiResponse(200, { ...task.toObject(), subtasks }, "Task fetched"),
+      new ApiResponse(
+        200,
+        { ...task.toObject(), subtasks, attachments },
+        "Task fetched",
+      ),
     );
 });
 
@@ -181,6 +189,7 @@ const deleteTask = asyncHandler(async (req, res) => {
   const task = await findTaskInProject(taskId, projectId);
 
   await SubTask.deleteMany({ task: task._id });
+  await Attachment.deleteMany({ task: task._id });
   await Task.findByIdAndDelete(task._id);
 
   return res
