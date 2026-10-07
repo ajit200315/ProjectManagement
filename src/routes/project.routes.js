@@ -18,6 +18,7 @@ import { validate } from "../middlewares/validator.middleware.js";
 import {
   addMemberToProjectValidator,
   createProjectValidator,
+  mongoIdPathVariableValidator,
   updateMemberRoleValidator,
 } from "../validators/index.js";
 import { UserRolesEnum } from "../utils/constant.js";
@@ -74,11 +75,17 @@ router
   .route("/:projectId/members/:userId")
   .put(
     validateProjectPermission([UserRolesEnum.ADMIN]),
+    mongoIdPathVariableValidator("userId"),
     updateMemberRoleValidator(),
     validate,
     updateMemberRole,
   )
-  .delete(validateProjectPermission([UserRolesEnum.ADMIN]), deleteMember);
+  .delete(
+    validateProjectPermission([UserRolesEnum.ADMIN]),
+    mongoIdPathVariableValidator("userId"),
+    validate,
+    deleteMember,
+  );
 
 // Nested resources: /api/v1/projects/:projectId/tasks and /notes
 router.use("/:projectId/tasks", taskRouter);

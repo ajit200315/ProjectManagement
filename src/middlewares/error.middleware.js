@@ -23,6 +23,10 @@ const errorHandler = (err, req, res, next) => {
     } else if (error instanceof mongoose.Error.CastError) {
       statusCode = 400;
       message = `Invalid ${error.path}`;
+    } else if (error.name === "BSONError") {
+      // Hand-built ObjectIds throw this rather than a mongoose CastError.
+      statusCode = 400;
+      message = "Invalid id";
     }
 
     error = new ApiError(statusCode, message, error?.errors ?? [], error.stack);

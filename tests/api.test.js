@@ -357,6 +357,13 @@ test("a malformed project id gives 400, not a 500", async () => {
     .expect(400);
 });
 
+test("a malformed member id gives 422, not a 500", async () => {
+  await api()
+    .delete(`/api/v1/projects/${projectId}/members/not-an-id`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(422);
+});
+
 test("deleting a project cascades to its tasks, subtasks, notes and members", async () => {
   await api()
     .delete(`/api/v1/projects/${projectId}`)
