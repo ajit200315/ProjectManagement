@@ -184,6 +184,69 @@ bounce the user to the login screen. Parallel 401s share a single refresh.
 > browser will not send cross-site. Either serve both from one domain, or
 > stay on the Bearer header — which is what the client already does.
 
+## Deploying
+
+The app is built to run as **one service**: Express serves the API and the
+built client from the same origin. That keeps the auth cookies first-party
+and means there is no CORS configuration to get wrong.
+
+```bash
+npm ci
+npm run build        # builds client/dist
+NODE_ENV=production npm start
+```
+
+Any host that runs those three commands works — Render, Railway, Fly, a
+VPS, or the included `Dockerfile`. Set the build command to `npm run build`
+and the start command to `npm start`.
+
+### Environment in production
+
+Everything in `.env.example`, with these mattering most:
+
+| Variable               | Notes                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| `NODE_ENV`             | must be `production` — gates stack traces out of error responses and marks cookies secure |
+| `MONGO_URI`            | a real database; MongoDB Atlas has a free tier                                            |
+| `ACCESS_TOKEN_SECRET`  | generate a fresh one, see below                                                           |
+| `REFRESH_TOKEN_SECRET` | must differ from the access secret                                                        |
+| `CLIENT_URL`           | your public URL — the verification and reset emails link here                             |
+| `PORT`                 | most hosts inject this; the app honours it                                                |
+
+Generate the secrets with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+The server refuses to boot if a required variable is missing, if the two
+secrets match, or if either is still a placeholder or under 32 characters
+in production. A failed deploy with a clear message beats a running one
+that breaks at the first login.
+
+### Two separate domains instead
+
+If you would rather host the client separately (Vercel, Netlify, a CDN):
+
+1. Build the client with `VITE_API_URL=https://api.example.com` set — it is
+   embedded at build time, not read at runtime.
+2. Set `CORS_ORIGIN` on the API to the client's origin.
+3. Switch the cookies in `src/controller/auth.controllers.js` to
+   `sameSite: "none"` — `lax` is not sent cross-site. The client
+   authenticates with the `Authorization` header, so this only matters if
+   you start relying on the cookies.
+
+### Checklist
+
+- [ ] `npm test` passes
+- [ ] `npm run build` produces `client/dist`
+- [ ] Real `MONGO_URI`, and the database accepts connections from the host
+- [ ] Fresh secrets, `NODE_ENV=production`, `CLIENT_URL` set
+- [ ] SMTP credentials set, or accept that verification and reset emails
+      will not send — registration still succeeds, the mail is logged as
+      failed rather than thrown
+- [ ] Health check pointed at `/api/v1/healthcheck`
+
 ## Layout
 
 ```
