@@ -1,5 +1,9 @@
 import { body, param } from "express-validator";
-import { AvailableTaskStatus, AvailableUserRoles } from "../utils/constant.js";
+import {
+  AvailableTaskPriorities,
+  AvailableTaskStatus,
+  AvailableUserRoles,
+} from "../utils/constant.js";
 
 const userRegisterValidator = () => {
   return [
@@ -110,6 +114,14 @@ const createTaskValidator = () => {
       .optional()
       .isIn(AvailableTaskStatus)
       .withMessage("Status is invalid"),
+    body("priority")
+      .optional()
+      .isIn(AvailableTaskPriorities)
+      .withMessage("Priority is invalid"),
+    body("dueDate")
+      .optional({ values: "falsy" })
+      .isISO8601()
+      .withMessage("Due date must be a valid date"),
   ];
 };
 
@@ -127,6 +139,15 @@ const updateTaskValidator = () => {
       .optional()
       .isIn(AvailableTaskStatus)
       .withMessage("Status is invalid"),
+    body("priority")
+      .optional()
+      .isIn(AvailableTaskPriorities)
+      .withMessage("Priority is invalid"),
+    // "" and null are how the client clears the date, so they must pass.
+    body("dueDate")
+      .optional({ values: "falsy" })
+      .isISO8601()
+      .withMessage("Due date must be a valid date"),
   ];
 };
 

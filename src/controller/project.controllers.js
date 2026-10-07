@@ -9,8 +9,11 @@ import { Task } from "../models/task.models.js";
 import { SubTask } from "../models/subtask.models.js";
 import { ProjectNote } from "../models/note.models.js";
 import { AvailableUserRoles, UserRolesEnum } from "../utils/constant.js";
+import { getPagination, paginated } from "../utils/pagination.js";
 
 const getProjects = asyncHandler(async (req, res) => {
+  const pagination = getPagination(req.query);
+
   const projects = await ProjectMember.aggregate([
     {
       $match: {
@@ -64,11 +67,28 @@ const getProjects = asyncHandler(async (req, res) => {
         _id: 0,
       },
     },
+    { $sort: { "project.createdAt": -1 } },
+    // One pass for the page and its total, rather than running the whole
+    // pipeline twice.
+    {
+      $facet: {
+        items: [{ $skip: pagination.skip }, { $limit: pagination.limit }],
+        total: [{ $count: "count" }],
+      },
+    },
   ]);
+
+  const { items = [], total = [] } = projects[0] ?? {};
 
   return res
     .status(200)
-    .json(new ApiResponse(200, projects, "Projects fetched successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        paginated(items, pagination, total[0]?.count ?? 0),
+        "Projects fetched successfully",
+      ),
+    );
 });
 
 const getProjectById = asyncHandler(async (req, res) => {

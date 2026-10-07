@@ -169,10 +169,11 @@ test("create a project; creator becomes its admin", async () => {
     .get("/api/v1/projects")
     .set("Authorization", `Bearer ${adminToken}`)
     .expect(200);
-  assert.equal(list.body.data.length, 1);
-  assert.equal(list.body.data[0].role, "admin");
-  assert.equal(list.body.data[0].project.name, "Apollo");
-  assert.equal(list.body.data[0].project.members, 1);
+  assert.equal(list.body.data.items.length, 1);
+  assert.equal(list.body.data.items[0].role, "admin");
+  assert.equal(list.body.data.items[0].project.name, "Apollo");
+  assert.equal(list.body.data.items[0].project.members, 1);
+  assert.equal(list.body.data.pagination.total, 1);
 });
 
 test("a non-member cannot read the project", async () => {
@@ -324,13 +325,14 @@ test("tasks can be filtered by status", async () => {
     .get(`/api/v1/projects/${projectId}/tasks?status=in_progress`)
     .set("Authorization", `Bearer ${adminToken}`)
     .expect(200);
-  assert.equal(res.body.data.length, 1);
+  assert.equal(res.body.data.items.length, 1);
 
   const none = await api()
     .get(`/api/v1/projects/${projectId}/tasks?status=done`)
     .set("Authorization", `Bearer ${adminToken}`)
     .expect(200);
-  assert.equal(none.body.data.length, 0);
+  assert.equal(none.body.data.items.length, 0);
+  assert.equal(none.body.data.pagination.total, 0);
 });
 
 test("a task id from another project is not reachable", async () => {
@@ -346,6 +348,145 @@ test("a task id from another project is not reachable", async () => {
     .expect(404);
 });
 
+test("tasks accept a priority and a due date", async () => {
+  const due = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const res = await api()
+    .post(`/api/v1/projects/${projectId}/tasks`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ title: "Ship it", priority: "urgent", dueDate: due })
+    .expect(201);
+
+  assert.equal(res.body.data.priority, "urgent");
+  assert.equal(new Date(res.body.data.dueDate).toISOString(), due);
+
+  // and default to medium when unspecified
+  const plain = await api()
+    .post(`/api/v1/projects/${projectId}/tasks`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ title: "No priority given" })
+    .expect(201);
+  assert.equal(plain.body.data.priority, "medium");
+  assert.equal(plain.body.data.dueDate, undefined);
+});
+
+test("an invalid priority or due date is rejected", async () => {
+  await api()
+    .post(`/api/v1/projects/${projectId}/tasks`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ title: "Bad", priority: "whenever" })
+    .expect(422);
+
+  await api()
+    .post(`/api/v1/projects/${projectId}/tasks`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ title: "Bad", dueDate: "not-a-date" })
+    .expect(422);
+});
+
+test("a due date can be cleared with an empty string", async () => {
+  const res = await api()
+    .put(`/api/v1/projects/${projectId}/tasks/${taskId}`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ dueDate: "" })
+    .expect(200);
+  assert.equal(res.body.data.dueDate, null);
+});
+
+test("tasks can be filtered by priority and to overdue only", async () => {
+  const byPriority = await api()
+    .get(`/api/v1/projects/${projectId}/tasks?priority=urgent`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+  assert.ok(byPriority.body.data.items.length >= 1);
+  assert.ok(byPriority.body.data.items.every((t) => t.priority === "urgent"));
+
+  // Nothing is overdue yet: the only dated task is a week out.
+  const overdue = await api()
+    .get(`/api/v1/projects/${projectId}/tasks?overdue=true`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+  assert.equal(overdue.body.data.items.length, 0);
+
+  // Backdate one, and it should appear.
+  const past = await api()
+    .post(`/api/v1/projects/${projectId}/tasks`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ title: "Late", dueDate: "2020-01-01T00:00:00.000Z" })
+    .expect(201);
+
+  const nowOverdue = await api()
+    .get(`/api/v1/projects/${projectId}/tasks?overdue=true`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+  assert.equal(nowOverdue.body.data.items.length, 1);
+  assert.equal(nowOverdue.body.data.items[0]._id, past.body.data._id);
+
+  // A completed task is never overdue, however old its due date.
+  await api()
+    .put(`/api/v1/projects/${projectId}/tasks/${past.body.data._id}`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ status: "done" })
+    .expect(200);
+
+  const afterDone = await api()
+    .get(`/api/v1/projects/${projectId}/tasks?overdue=true`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+  assert.equal(afterDone.body.data.items.length, 0);
+});
+
+test("task lists page, and the page size is capped", async () => {
+  const firstPage = await api()
+    .get(`/api/v1/projects/${projectId}/tasks?limit=2&page=1`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+
+  const { items, pagination } = firstPage.body.data;
+  assert.equal(items.length, 2);
+  assert.equal(pagination.page, 1);
+  assert.equal(pagination.limit, 2);
+  assert.ok(pagination.total > 2);
+  assert.equal(pagination.hasMore, true);
+
+  const secondPage = await api()
+    .get(`/api/v1/projects/${projectId}/tasks?limit=2&page=2`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+
+  // Pages must not overlap.
+  const firstIds = items.map((t) => t._id);
+  assert.ok(secondPage.body.data.items.every((t) => !firstIds.includes(t._id)));
+
+  // A caller cannot ask for an unbounded page.
+  const huge = await api()
+    .get(`/api/v1/projects/${projectId}/tasks?limit=100000`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+  assert.equal(huge.body.data.pagination.limit, 100);
+
+  // Garbage falls back to the default rather than erroring.
+  const junk = await api()
+    .get(`/api/v1/projects/${projectId}/tasks?limit=abc&page=-5`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+  assert.equal(junk.body.data.pagination.limit, 20);
+  assert.equal(junk.body.data.pagination.page, 1);
+});
+
+test("tasks can be sorted by due date", async () => {
+  const res = await api()
+    .get(`/api/v1/projects/${projectId}/tasks?sort=dueDate&order=asc&limit=100`)
+    .set("Authorization", `Bearer ${adminToken}`)
+    .expect(200);
+
+  const dates = res.body.data.items
+    .map((t) => t.dueDate)
+    .filter(Boolean)
+    .map((d) => new Date(d).getTime());
+  const sorted = [...dates].sort((a, b) => a - b);
+  assert.deepEqual(dates, sorted);
+});
+
 test("notes: create, list and read", async () => {
   const created = await api()
     .post(`/api/v1/projects/${projectId}/notes`)
@@ -359,7 +500,8 @@ test("notes: create, list and read", async () => {
     .get(`/api/v1/projects/${projectId}/notes`)
     .set("Authorization", `Bearer ${memberToken}`)
     .expect(200);
-  assert.equal(list.body.data.length, 1);
+  assert.equal(list.body.data.items.length, 1);
+  assert.equal(list.body.data.pagination.total, 1);
 
   const one = await api()
     .get(`/api/v1/projects/${projectId}/notes/${noteId}`)

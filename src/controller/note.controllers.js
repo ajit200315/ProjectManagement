@@ -4,19 +4,32 @@ import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { ProjectNote } from "../models/note.models.js";
 import { Project } from "../models/project.models.js";
+import { getPagination, paginated } from "../utils/pagination.js";
 
 const getNotes = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
 
-  const notes = await ProjectNote.find({
-    project: new mongoose.Types.ObjectId(projectId),
-  })
-    .populate("createdBy", "username fullName avatar")
-    .sort({ createdAt: -1 });
+  const filter = { project: new mongoose.Types.ObjectId(projectId) };
+  const pagination = getPagination(req.query);
+
+  const [notes, total] = await Promise.all([
+    ProjectNote.find(filter)
+      .populate("createdBy", "username fullName avatar")
+      .sort({ createdAt: -1 })
+      .skip(pagination.skip)
+      .limit(pagination.limit),
+    ProjectNote.countDocuments(filter),
+  ]);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, notes, "Notes fetched successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        paginated(notes, pagination, total),
+        "Notes fetched successfully",
+      ),
+    );
 });
 
 const getNoteById = asyncHandler(async (req, res) => {

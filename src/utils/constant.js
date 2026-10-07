@@ -13,3 +13,16 @@ export const TaskStatusEnum = {
 };
 
 export const AvailableTaskStatus = Object.values(TaskStatusEnum);
+
+export const TaskPriorityEnum = {
+  LOW: "low",
+  MEDIUM: "medium",
+  HIGH: "high",
+  URGENT: "urgent",
+};
+
+export const AvailableTaskPriorities = Object.values(TaskPriorityEnum);
+
+/** Default page size for list endpoints, and the ceiling a caller may ask for. */
+export const DEFAULT_PAGE_LIMIT = 20;
+export const MAX_PAGE_LIMIT = 100;

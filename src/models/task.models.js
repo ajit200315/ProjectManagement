@@ -1,5 +1,10 @@
 import mongoose, { Schema } from "mongoose";
-import { AvailableTaskStatus, TaskStatusEnum } from "../utils/constant.js";
+import {
+  AvailableTaskPriorities,
+  AvailableTaskStatus,
+  TaskPriorityEnum,
+  TaskStatusEnum,
+} from "../utils/constant.js";
 
 const taskSchema = new Schema(
   {
@@ -27,6 +32,14 @@ const taskSchema = new Schema(
       enum: AvailableTaskStatus,
       default: TaskStatusEnum.TODO,
     },
+    priority: {
+      type: String,
+      enum: AvailableTaskPriorities,
+      default: TaskPriorityEnum.MEDIUM,
+    },
+    dueDate: {
+      type: Date,
+    },
     attachments: {
       type: [
         {
@@ -40,5 +53,10 @@ const taskSchema = new Schema(
   },
   { timestamps: true },
 );
+
+// Boards are read far more than written, and nearly every read is "the tasks
+// in this project", often narrowed by status or sorted by when they are due.
+taskSchema.index({ project: 1, status: 1 });
+taskSchema.index({ project: 1, dueDate: 1 });
 
 export const Task = mongoose.model("Task", taskSchema);

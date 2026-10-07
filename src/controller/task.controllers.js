@@ -5,6 +5,8 @@ import { asyncHandler } from "../utils/async-handler.js";
 import { Task } from "../models/task.models.js";
 import { SubTask } from "../models/subtask.models.js";
 import { ProjectMember } from "../models/projectmember.models.js";
+import { getPagination, paginated } from "../utils/pagination.js";
+import { TaskStatusEnum } from "../utils/constant.js";
 
 /** Loads a task and asserts it belongs to the project on the URL. */
 const findTaskInProject = async (taskId, projectId) => {
@@ -20,13 +22,24 @@ const findTaskInProject = async (taskId, projectId) => {
   return task;
 };
 
+const SORTABLE = {
+  createdAt: "createdAt",
+  dueDate: "dueDate",
+  title: "title",
+  priority: "priority",
+};
+
 const getTasks = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
-  const { status, assignedTo } = req.query;
+  const { status, assignedTo, priority, overdue, sort, order } = req.query;
 
   const filter = { project: new mongoose.Types.ObjectId(projectId) };
+
   if (status) {
     filter.status = status;
+  }
+  if (priority) {
+    filter.priority = priority;
   }
   if (assignedTo) {
     if (!mongoose.isValidObjectId(assignedTo)) {
@@ -34,15 +47,37 @@ const getTasks = asyncHandler(async (req, res) => {
     }
     filter.assignedTo = new mongoose.Types.ObjectId(assignedTo);
   }
+  if (overdue === "true") {
+    // Compared against a Date, not Date.now(): mongo brackets comparisons by
+    // BSON type, so $lt with a number would never match a date field.
+    filter.dueDate = { $lt: new Date() };
+    filter.status = { $ne: TaskStatusEnum.DONE };
+  }
 
-  const tasks = await Task.find(filter)
-    .populate("assignedTo", "username fullName avatar")
-    .populate("assignedBy", "username fullName avatar")
-    .sort({ createdAt: -1 });
+  const sortField = SORTABLE[sort] ?? "createdAt";
+  const direction = order === "asc" ? 1 : -1;
+
+  const pagination = getPagination(req.query);
+
+  const [tasks, total] = await Promise.all([
+    Task.find(filter)
+      .populate("assignedTo", "username fullName avatar")
+      .populate("assignedBy", "username fullName avatar")
+      .sort({ [sortField]: direction })
+      .skip(pagination.skip)
+      .limit(pagination.limit),
+    Task.countDocuments(filter),
+  ]);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, tasks, "Tasks fetched successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        paginated(tasks, pagination, total),
+        "Tasks fetched successfully",
+      ),
+    );
 });
 
 const getTaskById = asyncHandler(async (req, res) => {
@@ -72,7 +107,8 @@ const getTaskById = asyncHandler(async (req, res) => {
 
 const createTask = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
-  const { title, description, assignedTo, status } = req.body;
+  const { title, description, assignedTo, status, priority, dueDate } =
+    req.body;
 
   // A task may only be assigned to someone who is on the project.
   if (assignedTo) {
@@ -92,6 +128,8 @@ const createTask = asyncHandler(async (req, res) => {
     assignedTo: assignedTo ?? undefined,
     assignedBy: new mongoose.Types.ObjectId(req.user._id),
     status,
+    priority,
+    dueDate: dueDate || undefined,
   });
 
   return res
@@ -101,7 +139,8 @@ const createTask = asyncHandler(async (req, res) => {
 
 const updateTask = asyncHandler(async (req, res) => {
   const { projectId, taskId } = req.params;
-  const { title, description, assignedTo, status } = req.body;
+  const { title, description, assignedTo, status, priority, dueDate } =
+    req.body;
 
   await findTaskInProject(taskId, projectId);
 
@@ -122,6 +161,9 @@ const updateTask = asyncHandler(async (req, res) => {
   if (description !== undefined) updates.description = description;
   if (assignedTo !== undefined) updates.assignedTo = assignedTo;
   if (status !== undefined) updates.status = status;
+  if (priority !== undefined) updates.priority = priority;
+  // "" and null both mean "clear the date".
+  if (dueDate !== undefined) updates.dueDate = dueDate || null;
 
   const updatedTask = await Task.findByIdAndUpdate(taskId, updates, {
     returnDocument: "after",
