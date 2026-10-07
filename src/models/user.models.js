@@ -1,106 +1,108 @@
 import mongoose, { Schema } from "mongoose";
-import jwt from "jsonwebtoken"
-import brcypt from "bcrypt"
-import crypto from "crypto"
+import jwt from "jsonwebtoken";
+import brcypt from "bcrypt";
+import crypto from "crypto";
 
-const userSchema = new Schema({
+const userSchema = new Schema(
+  {
     avatar: {
-        type: {
-            url: String,
-            localPath: String,
-        },
-        default: {
-            url: `https://placehold.co/200x200`,
-            localPath: ""
-        }
+      type: {
+        url: String,
+        localPath: String,
+      },
+      default: {
+        url: `https://placehold.co/200x200`,
+        localPath: "",
+      },
     },
     username: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true,
-        index: true
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      index: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
     },
     fullName: {
-        type: String,
-        trime: true
+      type: String,
+      trime: true,
     },
     password: {
-        type: String,
-        required: [true, "Password is required"]
+      type: String,
+      required: [true, "Password is required"],
     },
     isEmailVerified: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     refreshToken: {
-        type: String
+      type: String,
     },
     forgotPasswordToken: {
-        type: String
+      type: String,
     },
     forgotPasswordExpiry: {
-        type: Date
+      type: Date,
     },
     emailVerificationToken: {
-        type: String
+      type: String,
     },
     emailVerificationToken: {
-        type: Date
-    }
-},
-    {
-        timestamps: true
-    }
-)
+      type: Date,
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
 
 userSchema.pre("save", async function () {
-    if (!this.isModified("password")) return
+  if (!this.isModified("password")) return;
 
-    this.password = await brcypt.hash(this.password, 10)
-})
+  this.password = await brcypt.hash(this.password, 10);
+});
 
 userSchema.methods.isPasswordCorrect = async function (password) {
-    return await brcypt.compare(password, this.password)
-}
+  return await brcypt.compare(password, this.password);
+};
 
 userSchema.methods.generateAccessToken = function () {
-    return jwt.sign(
-        {
-            _id: this._id,
-            email: this.email,
-            username: this.username
-        },
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
-    )
-}
+  return jwt.sign(
+    {
+      _id: this._id,
+      email: this.email,
+      username: this.username,
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY },
+  );
+};
 
 userSchema.methods.generateRefreshToken = function () {
-    return jwt.sign(
-        {
-            _id: this._id,
-        },
-        process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
-    )
-}
+  return jwt.sign(
+    {
+      _id: this._id,
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY },
+  );
+};
 
 userSchema.methods.generateTemporaryToken = function () {
-    const unHashedToken = crypto.randomBytes(20).toString("hex")
-    const hashedToken = crypto.createHash("sha256").update(unHashedToken).digest("hex")
-    const tokenExpiry = Date.now() + (20 * 60 * 1000)
-    return { unHashedToken, hashedToken, tokenExpiry }
-}
+  const unHashedToken = crypto.randomBytes(20).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(unHashedToken)
+    .digest("hex");
+  const tokenExpiry = Date.now() + 20 * 60 * 1000;
+  return { unHashedToken, hashedToken, tokenExpiry };
+};
 
-
-export const User = mongoose.model("User", userSchema)
-
+export const User = mongoose.model("User", userSchema);
