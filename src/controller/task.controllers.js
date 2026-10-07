@@ -124,7 +124,7 @@ const updateTask = asyncHandler(async (req, res) => {
   if (status !== undefined) updates.status = status;
 
   const updatedTask = await Task.findByIdAndUpdate(taskId, updates, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 

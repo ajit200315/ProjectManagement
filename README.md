@@ -1,18 +1,41 @@
-# Project Management API
+# Project Management
 
-A backend for managing projects, their members, tasks, subtasks and notes.
-Built with Express 5, MongoDB/Mongoose, and JWT auth.
+A full-stack app for managing projects, their members, tasks, subtasks and
+notes. Express 5 + MongoDB/Mongoose API with JWT auth, and a React (Vite)
+client.
+
+```
+.
+├── src/      Express API            → localhost:8000
+├── client/   React + Vite frontend  → localhost:5173
+└── tests/    end-to-end API suite
+```
 
 ## Getting started
 
+Two processes, two terminals.
+
 ```bash
+# terminal 1 — API
 npm install
 cp .env.example .env    # then fill in the values
-npm run dev             # nodemon on http://localhost:8000
+npm run dev             # http://localhost:8000
+
+# terminal 2 — client
+npm --prefix client install
+cp client/.env.example client/.env
+npm run client          # http://localhost:5173
 ```
 
-`npm start` runs it without nodemon. `npm test` runs the test suite
-against an in-memory MongoDB, so it needs no database of its own.
+`npm start` runs the API without nodemon. `npm test` runs the API test
+suite against an in-memory MongoDB, so it needs no database of its own.
+
+### No MongoDB installed?
+
+`npm run dev:memdb` starts the API against a throwaway in-memory MongoDB
+with development secrets already set, so you can click around without
+installing anything. **Every record is discarded when the process exits** —
+for real work, install MongoDB or point `MONGO_URI` at an Atlas cluster.
 
 ### Environment
 
@@ -120,6 +143,29 @@ assigned to someone who is already a member of the project.
 ### Healthcheck — `/healthcheck`
 
 `GET /api/v1/healthcheck` returns 200 once the server is up.
+
+## Client
+
+The React client lives in `client/` and talks to the API over
+`VITE_API_URL` (default `http://localhost:8000`).
+
+```
+client/src/
+  api/client.js          fetch wrapper: envelope, errors, token refresh
+  context/               AuthProvider and the useAuth hook
+  components/            ProtectedRoute
+  pages/                 Login, Register, Dashboard
+```
+
+It authenticates with `Authorization: Bearer <token>` rather than cookies,
+storing both tokens in `localStorage`. When a request comes back 401, the
+client refreshes once and retries, so an expired access token does not
+bounce the user to the login screen. Parallel 401s share a single refresh.
+
+> **Deploying to two different domains?** The API also sets the tokens as
+> `httpOnly` cookies, but those are flagged `sameSite: "lax"`, which the
+> browser will not send cross-site. Either serve both from one domain, or
+> stay on the Bearer header — which is what the client already does.
 
 ## Layout
 

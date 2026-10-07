@@ -115,7 +115,7 @@ const updateProject = asyncHandler(async (req, res) => {
       name,
       description,
     },
-    { new: true, runValidators: true },
+    { returnDocument: "after", runValidators: true },
   );
 
   if (!project) {
@@ -268,7 +268,7 @@ const updateMemberRole = asyncHandler(async (req, res) => {
   const updatedMember = await ProjectMember.findByIdAndUpdate(
     projectMember._id,
     { role: newRole },
-    { new: true },
+    { returnDocument: "after" },
   );
 
   return res
