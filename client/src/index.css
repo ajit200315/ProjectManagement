@@ -80,13 +80,15 @@ h1 {
   text-align: center;
 }
 
-form {
+/* Auth cards stack their fields; scoped so it does not leak into the
+   inline forms elsewhere, which lay out in a row. */
+.card form {
   display: flex;
   flex-direction: column;
   margin-top: 1.5rem;
 }
 
-label {
+.card label {
   margin-bottom: 0.35rem;
   font-size: 0.8rem;
   font-weight: 600;
@@ -192,4 +194,401 @@ button.ghost {
 
 a {
   color: var(--accent);
+}
+
+/* ---------- app chrome ---------- */
+
+.topbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.topbar-right {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.page {
+  max-width: 84rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.page-head h1 {
+  margin-bottom: 0.25rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-head h2,
+.panel h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.pad {
+  padding: 0.5rem 0;
+}
+
+.small {
+  font-size: 0.8rem;
+}
+
+.empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.empty p {
+  margin: 0.25rem 0;
+}
+
+/* ---------- buttons shared with the auth forms ---------- */
+
+button.small {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+button.link {
+  padding: 0;
+  font-size: inherit;
+  font-weight: 500;
+  color: var(--accent);
+  background: none;
+  border: none;
+}
+
+button.link:hover {
+  text-decoration: underline;
+}
+
+button.danger,
+.link.danger {
+  color: var(--danger-text);
+}
+
+button.ghost.danger {
+  border-color: var(--danger-border);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ---------- forms used inside panels ---------- */
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.inline-form input,
+.inline-form select {
+  flex: 1 1 10rem;
+  margin-bottom: 0;
+}
+
+select {
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* ---------- project tiles ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+}
+
+.tile {
+  display: block;
+  padding: 1rem;
+  color: inherit;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tile:hover {
+  border-color: var(--accent);
+}
+
+.tile-head {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.tile p {
+  margin: 0.25rem 0 0;
+}
+
+.clamp {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* ---------- task board ---------- */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 3.2fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 60rem) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 48rem) {
+  .board {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.column h3 {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.count {
+  padding: 0.05rem 0.4rem;
+  font-size: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.task {
+  padding: 0.7rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.task.busy {
+  opacity: 0.6;
+}
+
+.task-head {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.task-title {
+  text-align: left;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.task p {
+  margin: 0.3rem 0 0;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.badge.dim {
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.task-body {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.status-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  font-weight: 400;
+}
+
+.subtasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.subtasks li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subtasks label {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.subtasks input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.struck {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.subtask-add {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.subtask-add input {
+  flex: 1;
+  margin-bottom: 0;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* ---------- members ---------- */
+
+.panel {
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.list.compact {
+  margin-top: 0;
+  gap: 0.4rem;
+}
+
+.list.compact li {
+  padding: 0.6rem 0.7rem;
+}
+
+.member-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.alert {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* An opened inline form takes its own full-width row rather than being
+   squeezed into the header's right-hand slot. */
+.page-head > .inline-form,
+.section-head > .inline-form {
+  flex: 1 1 100%;
+  align-items: stretch;
+  margin-top: 0.5rem;
+}
+
+.page-head > .inline-form > .alert,
+.section-head > .inline-form > .alert {
+  flex: 1 1 100%;
+  margin-bottom: 0;
+}
+
+.inline-form input,
+.inline-form select {
+  align-self: center;
 }

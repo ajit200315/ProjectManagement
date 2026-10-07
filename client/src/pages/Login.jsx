@@ -48,51 +48,53 @@ const Login = () => {
   };
 
   return (
-    <div className="card">
-      <h1>Sign in</h1>
-      <p className="muted">Use your email address or your username.</p>
+    <main className="shell">
+      <div className="card">
+        <h1>Sign in</h1>
+        <p className="muted">Use your email address or your username.</p>
 
-      <form onSubmit={handleSubmit} noValidate>
-        {error && <p className="alert">{error}</p>}
+        <form onSubmit={handleSubmit} noValidate>
+          {error && <p className="alert">{error}</p>}
 
-        <label htmlFor="identifier">Email or username</label>
-        <input
-          id="identifier"
-          name="identifier"
-          value={form.identifier}
-          onChange={update}
-          autoComplete="username"
-          required
-        />
-        {(fields.email || fields.username) && (
-          <small className="field-error">
-            {fields.email ?? fields.username}
-          </small>
-        )}
+          <label htmlFor="identifier">Email or username</label>
+          <input
+            id="identifier"
+            name="identifier"
+            value={form.identifier}
+            onChange={update}
+            autoComplete="username"
+            required
+          />
+          {(fields.email || fields.username) && (
+            <small className="field-error">
+              {fields.email ?? fields.username}
+            </small>
+          )}
 
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={update}
-          autoComplete="current-password"
-          required
-        />
-        {fields.password && (
-          <small className="field-error">{fields.password}</small>
-        )}
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={update}
+            autoComplete="current-password"
+            required
+          />
+          {fields.password && (
+            <small className="field-error">{fields.password}</small>
+          )}
 
-        <button type="submit" disabled={submitting}>
-          {submitting ? "Signing in…" : "Sign in"}
-        </button>
-      </form>
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
 
-      <p className="muted">
-        No account yet? <Link to="/register">Create one</Link>
-      </p>
-    </div>
+        <p className="muted">
+          No account yet? <Link to="/register">Create one</Link>
+        </p>
+      </div>
+    </main>
   );
 };
 

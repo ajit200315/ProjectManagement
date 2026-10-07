@@ -153,9 +153,26 @@ The React client lives in `client/` and talks to the API over
 client/src/
   api/client.js          fetch wrapper: envelope, errors, token refresh
   context/               AuthProvider and the useAuth hook
-  components/            ProtectedRoute
-  pages/                 Login, Register, Dashboard
+  hooks/useResource.js   load-on-mount + refresh, ignoring stale responses
+  components/            Layout, ProtectedRoute, TaskBoard, TaskCard,
+                         MembersPanel, ErrorBanner, Spinner
+  pages/                 Login, Register, Projects, ProjectDetail
 ```
+
+Screens:
+
+- **Projects** — everything you own or were added to, with your role and
+  the member count; create a new one inline.
+- **Project** — a three-column board (To do / In progress / Done). Opening
+  a task reveals its status, its subtasks and an inline add field; subtasks
+  load on expand rather than making the board issue a request per task.
+  Alongside it, a members panel to add people by email and set their role.
+
+The UI mirrors the API's permissions rather than second-guessing them: a
+plain member sees the board and can tick subtasks complete, but the
+controls for creating tasks, managing members and deleting the project are
+not rendered for them. The API still enforces all of it — hiding a button
+is a courtesy, not a security boundary.
 
 It authenticates with `Authorization: Bearer <token>` rather than cookies,
 storing both tokens in `localStorage`. When a request comes back 401, the

@@ -134,5 +134,88 @@ export const authApi = {
 
 export const projectApi = {
   list: () => api("/projects"),
+  get: (projectId) => api(`/projects/${projectId}`),
   create: (payload) => api("/projects", { method: "POST", body: payload }),
+  update: (projectId, payload) =>
+    api(`/projects/${projectId}`, { method: "PUT", body: payload }),
+  remove: (projectId) => api(`/projects/${projectId}`, { method: "DELETE" }),
+};
+
+export const memberApi = {
+  list: (projectId) => api(`/projects/${projectId}/members`),
+  add: (projectId, payload) =>
+    api(`/projects/${projectId}/members`, { method: "POST", body: payload }),
+  updateRole: (projectId, userId, newRole) =>
+    api(`/projects/${projectId}/members/${userId}`, {
+      method: "PUT",
+      body: { newRole },
+    }),
+  remove: (projectId, userId) =>
+    api(`/projects/${projectId}/members/${userId}`, { method: "DELETE" }),
+};
+
+export const taskApi = {
+  list: (projectId, params = {}) => {
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([, value]) => value),
+    ).toString();
+    return api(`/projects/${projectId}/tasks${query ? `?${query}` : ""}`);
+  },
+  get: (projectId, taskId) => api(`/projects/${projectId}/tasks/${taskId}`),
+  create: (projectId, payload) =>
+    api(`/projects/${projectId}/tasks`, { method: "POST", body: payload }),
+  update: (projectId, taskId, payload) =>
+    api(`/projects/${projectId}/tasks/${taskId}`, {
+      method: "PUT",
+      body: payload,
+    }),
+  remove: (projectId, taskId) =>
+    api(`/projects/${projectId}/tasks/${taskId}`, { method: "DELETE" }),
+
+  addSubTask: (projectId, taskId, title) =>
+    api(`/projects/${projectId}/tasks/${taskId}/subtasks`, {
+      method: "POST",
+      body: { title },
+    }),
+  updateSubTask: (projectId, taskId, subTaskId, payload) =>
+    api(`/projects/${projectId}/tasks/${taskId}/subtasks/${subTaskId}`, {
+      method: "PUT",
+      body: payload,
+    }),
+  removeSubTask: (projectId, taskId, subTaskId) =>
+    api(`/projects/${projectId}/tasks/${taskId}/subtasks/${subTaskId}`, {
+      method: "DELETE",
+    }),
+};
+
+export const ROLES = {
+  ADMIN: "admin",
+  PROJECT_ADMIN: "project_admin",
+  MEMBER: "member",
+};
+
+export const TASK_STATUS = {
+  TODO: "todo",
+  IN_PROGRESS: "in_progress",
+  DONE: "done",
+};
+
+export const STATUS_LABEL = {
+  [TASK_STATUS.TODO]: "To do",
+  [TASK_STATUS.IN_PROGRESS]: "In progress",
+  [TASK_STATUS.DONE]: "Done",
+};
+
+export const ROLE_LABEL = {
+  [ROLES.ADMIN]: "Admin",
+  [ROLES.PROJECT_ADMIN]: "Project admin",
+  [ROLES.MEMBER]: "Member",
+};
+
+/** Mirrors the permissions the API enforces, so the UI hides what would 403. */
+export const can = {
+  manageProject: (role) => role === ROLES.ADMIN,
+  manageMembers: (role) => role === ROLES.ADMIN,
+  manageTasks: (role) => role === ROLES.ADMIN || role === ROLES.PROJECT_ADMIN,
+  toggleSubTask: () => true,
 };
