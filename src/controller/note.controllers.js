@@ -68,7 +68,7 @@ const updateNote = asyncHandler(async (req, res) => {
   const note = await ProjectNote.findOneAndUpdate(
     { _id: noteId, project: new mongoose.Types.ObjectId(projectId) },
     { content },
-    { new: true, runValidators: true },
+    { returnDocument: "after", runValidators: true },
   ).populate("createdBy", "username fullName avatar");
 
   if (!note) {

@@ -176,7 +176,7 @@ const updateSubTask = asyncHandler(async (req, res) => {
   const subtask = await SubTask.findOneAndUpdate(
     { _id: subTaskId, task: task._id },
     updates,
-    { new: true, runValidators: true },
+    { returnDocument: "after", runValidators: true },
   );
 
   if (!subtask) {

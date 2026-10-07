@@ -28,7 +28,8 @@ const errorHandler = (err, req, res, next) => {
     error = new ApiError(statusCode, message, error?.errors ?? [], error.stack);
   }
 
-  if (process.env.NODE_ENV !== "production") {
+  // Keep the test output readable; negative tests throw on purpose.
+  if (!["production", "test"].includes(process.env.NODE_ENV)) {
     console.error(error);
   }
 

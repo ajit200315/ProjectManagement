@@ -168,7 +168,7 @@ const addMembersToProject = asyncHandler(async (req, res) => {
       role: role ?? UserRolesEnum.MEMBER,
     },
     {
-      new: true,
+      returnDocument: "after",
       upsert: true,
     },
   );
