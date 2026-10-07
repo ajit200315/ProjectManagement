@@ -13,15 +13,20 @@ const sendEmail = async (options) => {
   const emailTextual = mailGenerator.generatePlaintext(options.mailgenContent);
   const emailHtml = mailGenerator.generate(options.mailgenContent);
 
+  // Any SMTP provider works. The MAILTRAP_ names are kept as a fallback so
+  // an existing .env keeps working, but SMTP_ is the name to use.
+  const host = process.env.SMTP_HOST || process.env.MAILTRAP_SMTP_HOST;
+  const port =
+    Number(process.env.SMTP_PORT || process.env.MAILTRAP_SMTP_PORT) || 587;
+  const user = process.env.SMTP_USER || process.env.MAILTRAP_SMTP_USER;
+  const pass = process.env.SMTP_PASS || process.env.MAILTRAP_SMTP_PASS;
+
   const transporter = nodemailer.createTransport({
-    host: process.env.MAILTRAP_SMTP_HOST,
-    port: Number(process.env.MAILTRAP_SMTP_PORT) || 587,
+    host,
+    port,
     // 587 is STARTTLS, not implicit TLS; only 465 is secure-on-connect.
-    secure: Number(process.env.MAILTRAP_SMTP_PORT) === 465,
-    auth: {
-      user: process.env.MAILTRAP_SMTP_USER,
-      pass: process.env.MAILTRAP_SMTP_PASS,
-    },
+    secure: port === 465,
+    auth: { user, pass },
   });
 
   // Providers reject a sender whose domain is not verified on the account,

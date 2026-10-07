@@ -57,7 +57,7 @@ without a usable default:
 | `MONGO_URI`            | MongoDB connection string                        |
 | `ACCESS_TOKEN_SECRET`  | signs short-lived access tokens                  |
 | `REFRESH_TOKEN_SECRET` | signs refresh tokens (use a different value)     |
-| `MAILTRAP_SMTP_*`      | SMTP credentials for verification and reset mail |
+| `SMTP_*`               | SMTP credentials for verification and reset mail |
 
 Email failures are logged rather than thrown, so a missing SMTP config
 will not break registration — the verification mail just never arrives.

@@ -12,9 +12,9 @@ const RECOMMENDED = [
   "ACCESS_TOKEN_EXPIRY",
   "REFRESH_TOKEN_EXPIRY",
   "CLIENT_URL",
-  "MAILTRAP_SMTP_HOST",
-  "MAILTRAP_SMTP_USER",
-  "MAILTRAP_SMTP_PASS",
+  "SMTP_HOST",
+  "SMTP_USER",
+  "SMTP_PASS",
 ];
 
 // Values shipped in .env.example and the in-memory dev script. Fine locally,
