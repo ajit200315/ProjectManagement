@@ -3,41 +3,38 @@ import { useAuth } from "../context/auth-context.js";
 import Avatar from "./Avatar.jsx";
 import Icon from "./Icon.jsx";
 
-const navClass = ({ isActive }) => `side-link ${isActive ? "active" : ""}`;
-
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
 
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <Link to="/" className="brand">
-          <span className="brand-mark">
+    <div>
+      <aside>
+        <Link to="/">
+          <span>
             <Icon name="board" size={15} />
           </span>
-          <span className="brand-name">Workspace</span>
+          <span>Workspace</span>
         </Link>
 
-        <nav className="side-nav" aria-label="Main">
-          <p className="side-label">Planning</p>
-          <NavLink to="/" end className={navClass}>
+        <nav aria-label="Main">
+          <p>Planning</p>
+          <NavLink to="/" end>
             <Icon name="folder" />
             Projects
           </NavLink>
-          <NavLink to="/account" className={navClass}>
+          <NavLink to="/account">
             <Icon name="user" />
             Account
           </NavLink>
         </nav>
 
-        <div className="sidebar-foot">
+        <div>
           <Avatar name={user.fullName || user.username} />
-          <span className="sidebar-who">
+          <span>
             <strong>{user.username}</strong>
           </span>
           <button
             type="button"
-            className="icon"
             onClick={logout}
             title="Sign out"
             aria-label="Sign out"
@@ -47,9 +44,9 @@ const Layout = ({ children }) => {
         </div>
       </aside>
 
-      <div className="app-main">
+      <div>
         {!user.isEmailVerified && (
-          <div className="banner warn" role="status">
+          <div role="status">
             <span>
               <strong>Verify your email to make changes.</strong> You can look
               around, but creating and editing is disabled until you confirm
@@ -59,7 +56,7 @@ const Layout = ({ children }) => {
           </div>
         )}
 
-        <main className="page">{children}</main>
+        <main>{children}</main>
       </div>
     </div>
   );

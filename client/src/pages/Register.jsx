@@ -61,7 +61,7 @@ const Register = () => {
       }
     >
       <form onSubmit={handleSubmit} noValidate>
-        {error && <p className="alert">{error}</p>}
+        {error && <p>{error}</p>}
 
         <label htmlFor="fullName">Full name</label>
         <input
@@ -81,9 +81,7 @@ const Register = () => {
           autoComplete="username"
           required
         />
-        {fields.username && (
-          <small className="field-error">{fields.username}</small>
-        )}
+        {fields.username && <small>{fields.username}</small>}
 
         <label htmlFor="email">Email</label>
         <input
@@ -95,7 +93,7 @@ const Register = () => {
           autoComplete="email"
           required
         />
-        {fields.email && <small className="field-error">{fields.email}</small>}
+        {fields.email && <small>{fields.email}</small>}
 
         <label htmlFor="password">Password</label>
         <input
@@ -107,10 +105,8 @@ const Register = () => {
           autoComplete="new-password"
           required
         />
-        <small className="muted">At least 8 characters.</small>
-        {fields.password && (
-          <small className="field-error">{fields.password}</small>
-        )}
+        <small>At least 8 characters.</small>
+        {fields.password && <small>{fields.password}</small>}
 
         <button type="submit" disabled={submitting}>
           {submitting ? "Creating…" : "Create account"}

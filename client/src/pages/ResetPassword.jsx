@@ -47,7 +47,7 @@ const ResetPassword = () => {
       footer={<Link to="/login">Back to sign in</Link>}
     >
       <form onSubmit={handleSubmit} noValidate>
-        {error && <p className="alert">{error}</p>}
+        {error && <p>{error}</p>}
 
         <label htmlFor="password">New password</label>
         <input
@@ -58,10 +58,8 @@ const ResetPassword = () => {
           autoComplete="new-password"
           required
         />
-        <small className="muted">At least 8 characters.</small>
-        {fields.newPassword && (
-          <small className="field-error">{fields.newPassword}</small>
-        )}
+        <small>At least 8 characters.</small>
+        {fields.newPassword && <small>{fields.newPassword}</small>}
 
         <label htmlFor="confirm">Confirm new password</label>
         <input

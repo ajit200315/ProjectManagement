@@ -7,23 +7,21 @@ const Pager = ({ pagination, onPage, busy = false }) => {
   const { page, totalPages, total } = pagination;
 
   return (
-    <nav className="pager" aria-label="Pagination">
+    <nav aria-label="Pagination">
       <button
         type="button"
-        className="ghost small"
         onClick={() => onPage(page - 1)}
         disabled={busy || page <= 1}
       >
         <Icon name="chevronLeft" size={14} /> Previous
       </button>
 
-      <span className="muted small">
+      <span>
         Page {page} of {totalPages} · {total} total
       </span>
 
       <button
         type="button"
-        className="ghost small"
         onClick={() => onPage(page + 1)}
         disabled={busy || page >= totalPages}
       >

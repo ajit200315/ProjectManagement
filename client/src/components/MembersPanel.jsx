@@ -39,35 +39,31 @@ const MembersPanel = ({
   };
 
   return (
-    <section className="panel">
-      <div className="section-head">
+    <section>
+      <div>
         <h2>
           <Icon name="users" size={15} /> Members
         </h2>
-        <span className="count">{members.length}</span>
+        <span>{members.length}</span>
       </div>
 
       <ErrorBanner error={error} onDismiss={() => setError("")} />
 
-      <ul className="list">
+      <ul>
         {members.map((member) => (
           <li key={member.user._id}>
-            <div className="member">
+            <div>
               <Avatar name={member.user.fullName || member.user.username} />
-              <div className="member-name">
+              <div>
                 <strong>
                   {member.user.username}
-                  {member.user._id === currentUserId && (
-                    <span className="muted small"> (you)</span>
-                  )}
+                  {member.user._id === currentUserId && <span> (you)</span>}
                 </strong>
-                {member.user.fullName && (
-                  <p className="muted small">{member.user.fullName}</p>
-                )}
+                {member.user.fullName && <p>{member.user.fullName}</p>}
               </div>
             </div>
 
-            <div className="member-actions">
+            <div>
               {canManage ? (
                 <select
                   aria-label={`Role for ${member.user.username}`}
@@ -90,13 +86,12 @@ const MembersPanel = ({
                   ))}
                 </select>
               ) : (
-                <span className="badge round">{ROLE_LABEL[member.role]}</span>
+                <span>{ROLE_LABEL[member.role]}</span>
               )}
 
               {canManage && (
                 <button
                   type="button"
-                  className="icon danger"
                   disabled={busy}
                   onClick={() =>
                     run(() => memberApi.remove(projectId, member.user._id))
@@ -113,7 +108,7 @@ const MembersPanel = ({
       </ul>
 
       {canManage && (
-        <form className="inline-form panel-form" onSubmit={add}>
+        <form onSubmit={add}>
           <input
             type="email"
             aria-label="Member email"
@@ -133,7 +128,7 @@ const MembersPanel = ({
               </option>
             ))}
           </select>
-          <button type="submit" className="ghost small" disabled={busy}>
+          <button type="submit" disabled={busy}>
             <Icon name="plus" size={14} /> Add
           </button>
         </form>

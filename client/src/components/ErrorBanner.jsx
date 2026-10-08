@@ -4,13 +4,13 @@ const ErrorBanner = ({ error, onDismiss }) => {
   if (!error) return null;
 
   return (
-    <p className="alert" role="alert">
-      <span className="alert-body">
-        <Icon name="x" size={14} className="alert-icon" />
+    <p role="alert">
+      <span>
+        <Icon name="x" size={14} />
         {error}
       </span>
       {onDismiss && (
-        <button type="button" className="link" onClick={onDismiss}>
+        <button type="button" onClick={onDismiss}>
           Dismiss
         </button>
       )}

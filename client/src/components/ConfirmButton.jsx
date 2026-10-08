@@ -11,7 +11,6 @@ const ConfirmButton = ({
   onConfirm,
   children,
   confirmLabel = "Confirm",
-  className = "ghost danger",
   disabled = false,
   timeout = 4000,
   ...rest
@@ -35,8 +34,6 @@ const ConfirmButton = ({
   return (
     <button
       type="button"
-      // Armed widens an icon-only button so the confirm wording still fits.
-      className={`${className}${armed ? " armed" : ""}`}
       onClick={handleClick}
       disabled={disabled}
       aria-live="polite"

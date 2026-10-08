@@ -57,8 +57,8 @@ const NotesPanel = ({ projectId, canManage }) => {
   };
 
   return (
-    <section className="panel">
-      <div className="section-head">
+    <section>
+      <div>
         <h2>
           <Icon name="note" size={15} /> Notes
         </h2>
@@ -66,17 +66,15 @@ const NotesPanel = ({ projectId, canManage }) => {
 
       <ErrorBanner error={error} onDismiss={() => setError("")} />
 
-      {loading && <p className="muted small">Loading notes…</p>}
+      {loading && <p>Loading notes…</p>}
 
-      {!loading && notes.length === 0 && (
-        <p className="muted small">No notes yet.</p>
-      )}
+      {!loading && notes.length === 0 && <p>No notes yet.</p>}
 
-      <ul className="notes">
+      <ul>
         {notes.map((note) => (
           <li key={note._id}>
             {editing === note._id ? (
-              <form className="note-edit" onSubmit={saveEdit}>
+              <form onSubmit={saveEdit}>
                 <textarea
                   aria-label="Edit note"
                   value={editDraft}
@@ -84,32 +82,27 @@ const NotesPanel = ({ projectId, canManage }) => {
                   rows={3}
                   autoFocus
                 />
-                <div className="actions">
-                  <button type="submit" className="small" disabled={busy}>
+                <div>
+                  <button type="submit" disabled={busy}>
                     Save
                   </button>
-                  <button
-                    type="button"
-                    className="ghost small"
-                    onClick={() => setEditing(null)}
-                  >
+                  <button type="button" onClick={() => setEditing(null)}>
                     Cancel
                   </button>
                 </div>
               </form>
             ) : (
               <>
-                <p className="note-body">{note.content}</p>
-                <div className="note-foot">
-                  <span className="who">
-                    <Avatar name={note.createdBy?.username} size="sm" />
+                <p>{note.content}</p>
+                <div>
+                  <span>
+                    <Avatar name={note.createdBy?.username} />
                     <span>{note.createdBy?.username ?? "Unknown"}</span>
                   </span>
                   {canManage && (
-                    <span className="actions">
+                    <span>
                       <button
                         type="button"
-                        className="link"
                         onClick={() => {
                           setEditing(note._id);
                           setEditDraft(note.content);
@@ -119,7 +112,6 @@ const NotesPanel = ({ projectId, canManage }) => {
                       </button>
                       <button
                         type="button"
-                        className="link danger"
                         disabled={busy}
                         onClick={() =>
                           run(() => noteApi.remove(projectId, note._id))
@@ -139,7 +131,7 @@ const NotesPanel = ({ projectId, canManage }) => {
       <Pager pagination={data?.pagination} onPage={setPage} busy={loading} />
 
       {canManage && (
-        <form className="note-add panel-form" onSubmit={add}>
+        <form onSubmit={add}>
           <textarea
             aria-label="New note"
             placeholder="Add a note"
@@ -147,7 +139,7 @@ const NotesPanel = ({ projectId, canManage }) => {
             onChange={(event) => setDraft(event.target.value)}
             rows={2}
           />
-          <button type="submit" className="ghost small" disabled={busy}>
+          <button type="submit" disabled={busy}>
             Add note
           </button>
         </form>
