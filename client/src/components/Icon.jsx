@@ -78,6 +78,15 @@ const PATHS = {
     </>
   ),
   x: <path d="M6 6l12 12M18 6 6 18" />,
+  activity: <path d="M3 12h3.5l2.5-7 4 14 2.5-7H21" />,
+  branch: (
+    <>
+      <circle cx="6" cy="5" r="2.5" />
+      <circle cx="6" cy="19" r="2.5" />
+      <circle cx="18" cy="12" r="2.5" />
+      <path d="M6 7.5v9M8.5 19h4a3 3 0 0 0 3-3v-2.5" />
+    </>
+  ),
 };
 
 const Icon = ({ name, size = 16, className = "", strokeWidth = 2 }) => (

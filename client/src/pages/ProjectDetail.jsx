@@ -11,6 +11,7 @@ import NotesPanel from "../components/NotesPanel.jsx";
 import Pager from "../components/Pager.jsx";
 import ConfirmButton from "../components/ConfirmButton.jsx";
 import Avatar from "../components/Avatar.jsx";
+import Timeline from "../components/Timeline.jsx";
 import Icon from "../components/Icon.jsx";
 import { useResource } from "../hooks/useResource.js";
 
@@ -46,6 +47,14 @@ const ProjectDetail = () => {
   const { project, members = [], tasks } = data ?? {};
   const taskItems = tasks?.items ?? [];
 
+  // The timeline keeps its own unfiltered copy of the tasks, so it has no way
+  // to know a mutation landed. Bumping this on every refresh is that signal.
+  const [revision, setRevision] = useState(0);
+  const reload = useCallback(async () => {
+    await refresh();
+    setRevision((n) => n + 1);
+  }, [refresh]);
+
   const updateFilter = (patch) => {
     setPage(1);
     setFilters((current) => ({ ...current, ...patch }));
@@ -75,7 +84,7 @@ const ProjectDetail = () => {
     setSaving(true);
     try {
       await projectApi.update(projectId, draft);
-      await refresh();
+      await reload();
       setEditing(false);
     } catch (err) {
       setActionError(err.message);
@@ -197,7 +206,7 @@ const ProjectDetail = () => {
             tasks={taskItems}
             members={members}
             canManage={can.manageTasks(role)}
-            onChanged={refresh}
+            onChanged={reload}
             filters={filters}
             onFilterChange={updateFilter}
           />
@@ -214,11 +223,18 @@ const ProjectDetail = () => {
             members={members}
             canManage={can.manageMembers(role)}
             currentUserId={user._id}
-            onChanged={refresh}
+            onChanged={reload}
           />
           <NotesPanel projectId={projectId} canManage={can.manageNotes(role)} />
         </div>
       </div>
+
+      <Timeline
+        projectId={projectId}
+        project={project}
+        members={members}
+        revision={revision}
+      />
     </Layout>
   );
 };
