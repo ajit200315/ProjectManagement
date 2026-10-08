@@ -91,67 +91,66 @@
   -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --n-0: #1d2125;
-    --n-10: #22272b;
-    --n-20: #282e33;
-    --n-30: #2c333a;
-    --n-40: #38414a;
-    --n-100: #454f59;
-    --n-300: #738496;
-    --n-500: #8c9bab;
-    --n-700: #b6c2cf;
-    --n-900: #dee4ea;
+/* Opt-in only — set data-theme="dark" on <html> to use this palette. */
+:root[data-theme="dark"] {
+  --n-0: #1d2125;
+  --n-10: #22272b;
+  --n-20: #282e33;
+  --n-30: #2c333a;
+  --n-40: #38414a;
+  --n-100: #454f59;
+  --n-300: #738496;
+  --n-500: #8c9bab;
+  --n-700: #b6c2cf;
+  --n-900: #dee4ea;
 
-    --bg: #161a1d;
-    --bg-sunken: #1d2125;
-    --surface: #22272b;
-    --surface-raised: #282e33;
-    --surface-hover: #2c333a;
-    --surface-selected: #1c2b41;
-    --border: #38414a;
-    --border-subtle: #2c333a;
-    --border-strong: #596773;
-    --text: #dee4ea;
-    --text-subtle: #b6c2cf;
-    --muted: #9fadbc;
-    --faint: #738496;
+  --bg: #161a1d;
+  --bg-sunken: #1d2125;
+  --surface: #22272b;
+  --surface-raised: #282e33;
+  --surface-hover: #2c333a;
+  --surface-selected: #1c2b41;
+  --border: #38414a;
+  --border-subtle: #2c333a;
+  --border-strong: #596773;
+  --text: #dee4ea;
+  --text-subtle: #b6c2cf;
+  --muted: #9fadbc;
+  --faint: #738496;
 
-    --accent: #579dff;
-    --accent-hover: #85b8ff;
-    --accent-active: #cce0ff;
-    --accent-text: #1c2b41;
-    --accent-subtle: #1c2b41;
-    --accent-subtle-hover: #09326c;
+  --accent: #579dff;
+  --accent-hover: #85b8ff;
+  --accent-active: #cce0ff;
+  --accent-text: #1c2b41;
+  --accent-subtle: #1c2b41;
+  --accent-subtle-hover: #09326c;
 
-    --danger-bg: #42221f;
-    --danger-border: #5d1f1a;
-    --danger-text: #ff9c8f;
-    --danger-solid: #f87168;
+  --danger-bg: #42221f;
+  --danger-border: #5d1f1a;
+  --danger-text: #ff9c8f;
+  --danger-solid: #f87168;
 
-    --ok-bg: #1c3329;
-    --ok-border: #216e4e;
-    --ok-text: #7ee2b8;
-    --ok-solid: #4bce97;
+  --ok-bg: #1c3329;
+  --ok-border: #216e4e;
+  --ok-text: #7ee2b8;
+  --ok-solid: #4bce97;
 
-    --warn-bg: #3d3223;
-    --warn-border: #533f04;
-    --warn-text: #f5cd47;
-    --warn-solid: #e2b203;
+  --warn-bg: #3d3223;
+  --warn-border: #533f04;
+  --warn-text: #f5cd47;
+  --warn-solid: #e2b203;
 
-    --info-bg: #1c2b41;
-    --info-text: #85b8ff;
+  --info-bg: #1c2b41;
+  --info-text: #85b8ff;
 
-    --purple-bg: #2b273f;
-    --purple-text: #b8acf6;
+  --purple-bg: #2b273f;
+  --purple-text: #b8acf6;
 
-    --shadow-sm: 0 1px 1px rgb(3 4 4 / 0.5), 0 0 1px rgb(3 4 4 / 0.5);
-    --shadow-md: 0 4px 8px -2px rgb(3 4 4 / 0.56), 0 0 1px rgb(3 4 4 / 0.5);
-    --shadow-lg: 0 12px 24px -6px rgb(3 4 4 / 0.56), 0 0 1px rgb(3 4 4 / 0.5);
+  --shadow-sm: 0 1px 1px rgb(3 4 4 / 0.5), 0 0 1px rgb(3 4 4 / 0.5);
+  --shadow-md: 0 4px 8px -2px rgb(3 4 4 / 0.56), 0 0 1px rgb(3 4 4 / 0.5);
+  --shadow-lg: 0 12px 24px -6px rgb(3 4 4 / 0.56), 0 0 1px rgb(3 4 4 / 0.5);
 
-    color-scheme: dark;
-  }
+  color-scheme: dark;
 }
 
 * {
@@ -685,15 +684,13 @@ select {
   background-position: right 0.4rem center;
 }
 
-@media (prefers-color-scheme: dark) {
-  select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239fadbc' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  }
+:root[data-theme="dark"] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239fadbc' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
 
-  /* Date inputs render their picker icon dark-on-dark otherwise. */
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-  }
+/* Date inputs render their picker icon dark-on-dark otherwise. */
+:root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
 
 input[type="checkbox"] {
@@ -907,10 +904,8 @@ label {
   color: var(--accent);
 }
 
-@media (prefers-color-scheme: dark) {
-  .prio-high {
-    color: #fea362;
-  }
+:root[data-theme="dark"] .prio-high {
+  color: #fea362;
 }
 
 .avatar {
