@@ -14,16 +14,23 @@ const Layout = ({ children }) => {
           <Link to="/account" className="muted">
             {user.username}
           </Link>
-          {!user.isEmailVerified && (
-            <Link to="/account" className="badge warn">
-              Verify email
-            </Link>
-          )}
+
           <button type="button" className="ghost small" onClick={logout}>
             Sign out
           </button>
         </div>
       </header>
+      {!user.isEmailVerified && (
+        <div className="banner warn" role="status">
+          <span>
+            <strong>Verify your email to make changes.</strong> You can look
+            around, but creating and editing is disabled until you confirm your
+            address.
+          </span>
+          <Link to="/account">Resend the link →</Link>
+        </div>
+      )}
+
       <main className="page">{children}</main>
     </>
   );

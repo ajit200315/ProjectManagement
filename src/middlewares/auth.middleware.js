@@ -62,3 +62,22 @@ export const validateProjectPermission = (roles = []) =>
 
     next();
   });
+
+/**
+ * Blocks changes from an account whose email has not been confirmed.
+ *
+ * Deliberately not applied to login or to reads: locking someone out of the
+ * app entirely because a verification mail landed in spam is a worse failure
+ * than letting them look around. They can sign in, see their projects, and
+ * request a new link — they just cannot write until they confirm.
+ */
+export const requireVerifiedEmail = asyncHandler(async (req, res, next) => {
+  if (!req.user?.isEmailVerified) {
+    throw new ApiError(
+      403,
+      "Please verify your email address before making changes. " +
+        "Check your inbox, or request a new link from your account page.",
+    );
+  }
+  next();
+});

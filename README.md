@@ -62,6 +62,19 @@ without a usable default:
 Email failures are logged rather than thrown, so a missing SMTP config
 will not break registration — the verification mail just never arrives.
 
+## Email verification
+
+A new account can sign in and read immediately, but **cannot write until its
+email is confirmed** — no creating or editing projects, tasks, notes, members
+or attachments. The API answers those with 403 and an explanation, and the
+client shows a banner rather than leaving the user to discover it from a
+failed action.
+
+The gate is deliberately not on login. Locking someone out of their account
+because a verification mail landed in spam is a worse failure than letting
+them look around while they request a new link, which they can do from the
+account page.
+
 ## Roles
 
 Every membership carries one of three roles, checked per project by

@@ -11,6 +11,7 @@ import {
   updateProject,
 } from "../controller/project.controllers.js";
 import {
+  requireVerifiedEmail,
   validateProjectPermission,
   verifyJWT,
 } from "../middlewares/auth.middleware.js";
@@ -30,6 +31,12 @@ const router = Router();
 // Applies to this router and to the nested task/note routers below, so
 // those do not repeat the check.
 router.use(verifyJWT);
+
+// Reads stay open to an unverified account; anything that changes data does
+// not. Covers the nested task, note and attachment routers too.
+router.use((req, res, next) =>
+  req.method === "GET" ? next() : requireVerifiedEmail(req, res, next),
+);
 
 router
   .route("/")

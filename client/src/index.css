@@ -841,3 +841,28 @@ textarea:focus-visible {
     filter: invert(1);
   }
 }
+
+/* Explains why writes are refused, rather than leaving the user to discover
+   it from a 403 on their first attempt. */
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.banner.warn {
+  color: var(--warn-text);
+  background: var(--warn-bg);
+  border-bottom-color: var(--warn-border);
+}
+
+.banner a {
+  flex-shrink: 0;
+  color: inherit;
+  font-weight: 600;
+}

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import request from "supertest";
@@ -26,6 +27,28 @@ const member = {
   email: "member@example.com",
   username: "memberuser",
   password: "password123",
+};
+
+/**
+ * Confirms an account the way a real user would: plant a token the way the
+ * controller does, then consume it through the public verify endpoint. Writes
+ * are blocked until this happens, so most tests need it.
+ */
+const verifyEmailFor = async (email) => {
+  const unHashed = crypto.randomBytes(20).toString("hex");
+  const hashed = crypto.createHash("sha256").update(unHashed).digest("hex");
+
+  await mongoose.connection.collection("users").updateOne(
+    { email },
+    {
+      $set: {
+        emailVerificationToken: hashed,
+        emailVerificationExpiry: new Date(Date.now() + 20 * 60 * 1000),
+      },
+    },
+  );
+
+  await api().get(`/api/v1/auth/verify-email/${unHashed}`).expect(200);
 };
 
 let adminToken, memberToken, outsiderToken, memberId;
@@ -77,6 +100,10 @@ test("register creates both users", async () => {
     .send(member)
     .expect(201);
   memberId = res2.body.data.user._id;
+
+  // Writes are gated on a confirmed address.
+  await verifyEmailFor(admin.email);
+  await verifyEmailFor(member.email);
 });
 
 test("register refuses a duplicate email", async () => {
@@ -677,6 +704,97 @@ test("deleting a project cascades to its tasks, subtasks, notes and members", as
     await db.collection("projectmembers").countDocuments({ project: oid }),
     0,
   );
+});
+
+test("an unverified account can read but cannot write", async () => {
+  const pending = {
+    email: "pending@example.com",
+    username: "pendinguser",
+    password: "password123",
+  };
+
+  await api().post("/api/v1/auth/register").send(pending).expect(201);
+  const login = await api()
+    .post("/api/v1/auth/login")
+    .send({ email: pending.email, password: pending.password })
+    .expect(200);
+  const token = login.body.data.accessToken;
+
+  // Signing in still works — a verification mail lost to spam must not lock
+  // someone out of their own account.
+  assert.equal(login.body.data.user.isEmailVerified, false);
+
+  const res = await api()
+    .post("/api/v1/projects")
+    .set("Authorization", `Bearer ${token}`)
+    .send({ name: "Should be refused" })
+    .expect(403);
+  assert.match(res.body.message, /verify your email/i);
+
+  // Reads are unaffected.
+  await api()
+    .get("/api/v1/projects")
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200);
+
+  // And once confirmed, the same write succeeds.
+  await verifyEmailFor(pending.email);
+  const after = await api()
+    .post("/api/v1/auth/login")
+    .send({ email: pending.email, password: pending.password })
+    .expect(200);
+
+  await api()
+    .post("/api/v1/projects")
+    .set("Authorization", `Bearer ${after.body.data.accessToken}`)
+    .send({ name: "Now allowed" })
+    .expect(201);
+});
+
+test("the gate covers nested writes, not just projects", async () => {
+  const pending = {
+    email: "pending2@example.com",
+    username: "pendinguser2",
+    password: "password123",
+  };
+  await api().post("/api/v1/auth/register").send(pending).expect(201);
+  const login = await api()
+    .post("/api/v1/auth/login")
+    .send({ email: pending.email, password: pending.password })
+    .expect(200);
+  const token = login.body.data.accessToken;
+
+  // 403 for being unverified is reached before the project-membership check,
+  // so these never leak whether the project exists.
+  for (const [method, path, body] of [
+    ["post", `/api/v1/projects/${projectId}/tasks`, { title: "x" }],
+    ["post", `/api/v1/projects/${projectId}/notes`, { content: "x" }],
+    ["post", `/api/v1/projects/${projectId}/members`, { email: admin.email }],
+    ["delete", `/api/v1/projects/${projectId}`, undefined],
+  ]) {
+    const req = api()[method](path).set("Authorization", `Bearer ${token}`);
+    const res = await (body ? req.send(body) : req).expect(403);
+    assert.match(res.body.message, /verify your email/i);
+  }
+});
+
+test("account endpoints stay reachable while unverified", async () => {
+  const login = await api()
+    .post("/api/v1/auth/login")
+    .send({ email: "pending2@example.com", password: "password123" })
+    .expect(200);
+  const token = login.body.data.accessToken;
+
+  // Otherwise an unverified user could not request a new link or sign out.
+  await api()
+    .get("/api/v1/auth/current-user")
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200);
+
+  await api()
+    .post("/api/v1/auth/resend-email-verification")
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200);
 });
 
 test("logout clears the session", async () => {
