@@ -3,6 +3,8 @@ import { authApi, ApiError } from "../api/client.js";
 import { useAuth } from "../context/auth-context.js";
 import Layout from "../components/Layout.jsx";
 import ErrorBanner from "../components/ErrorBanner.jsx";
+import Avatar from "../components/Avatar.jsx";
+import Icon from "../components/Icon.jsx";
 
 const ChangePassword = () => {
   const [form, setForm] = useState({
@@ -48,7 +50,9 @@ const ChangePassword = () => {
 
   return (
     <section className="panel">
-      <h2>Change password</h2>
+      <div className="section-head">
+        <h2>Change password</h2>
+      </div>
 
       <form className="stacked" onSubmit={handleSubmit} noValidate>
         <ErrorBanner error={error} onDismiss={() => setError("")} />
@@ -104,10 +108,13 @@ const EmailVerification = () => {
   if (user.isEmailVerified) {
     return (
       <section className="panel">
-        <h2>Email</h2>
-        <p className="muted">
-          {user.email} — <strong>verified</strong>.
-        </p>
+        <div className="section-head">
+          <h2>Email</h2>
+          <span className="badge round ok">
+            <Icon name="check" size={12} /> Verified
+          </span>
+        </div>
+        <p className="muted">{user.email}</p>
       </section>
     );
   }
@@ -151,11 +158,14 @@ const Account = () => {
   return (
     <Layout>
       <div className="page-head">
-        <div>
-          <h1>Account</h1>
-          <p className="muted">
-            {user.fullName ? `${user.fullName} · ` : ""}@{user.username}
-          </p>
+        <div className="who-head">
+          <Avatar name={user.fullName || user.username} size="xl" />
+          <div>
+            <h1>{user.fullName || user.username}</h1>
+            <p className="muted">
+              @{user.username} · {user.email}
+            </p>
+          </div>
         </div>
       </div>
 

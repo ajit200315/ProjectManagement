@@ -3,6 +3,8 @@ import { noteApi } from "../api/client.js";
 import { useResource } from "../hooks/useResource.js";
 import ErrorBanner from "./ErrorBanner.jsx";
 import Pager from "./Pager.jsx";
+import Avatar from "./Avatar.jsx";
+import Icon from "./Icon.jsx";
 
 const NotesPanel = ({ projectId, canManage }) => {
   const [page, setPage] = useState(1);
@@ -57,7 +59,9 @@ const NotesPanel = ({ projectId, canManage }) => {
   return (
     <section className="panel">
       <div className="section-head">
-        <h2>Notes</h2>
+        <h2>
+          <Icon name="note" size={15} /> Notes
+        </h2>
       </div>
 
       <ErrorBanner error={error} onDismiss={() => setError("")} />
@@ -97,10 +101,9 @@ const NotesPanel = ({ projectId, canManage }) => {
               <>
                 <p className="note-body">{note.content}</p>
                 <div className="note-foot">
-                  <span className="muted small">
-                    {note.createdBy?.username
-                      ? `@${note.createdBy.username}`
-                      : "—"}
+                  <span className="who">
+                    <Avatar name={note.createdBy?.username} size="sm" />
+                    <span>{note.createdBy?.username ?? "Unknown"}</span>
                   </span>
                   {canManage && (
                     <span className="actions">
@@ -136,7 +139,7 @@ const NotesPanel = ({ projectId, canManage }) => {
       <Pager pagination={data?.pagination} onPage={setPage} busy={loading} />
 
       {canManage && (
-        <form className="note-add" onSubmit={add}>
+        <form className="note-add panel-form" onSubmit={add}>
           <textarea
             aria-label="New note"
             placeholder="Add a note"

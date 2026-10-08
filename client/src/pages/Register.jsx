@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth-context.js";
 import { ApiError } from "../api/client.js";
+import AuthShell from "../components/AuthShell.jsx";
 
 const Register = () => {
   const { user, register } = useAuth();
@@ -50,74 +51,72 @@ const Register = () => {
   };
 
   return (
-    <main className="shell">
-      <div className="card">
-        <h1>Create an account</h1>
-
-        <form onSubmit={handleSubmit} noValidate>
-          {error && <p className="alert">{error}</p>}
-
-          <label htmlFor="fullName">Full name</label>
-          <input
-            id="fullName"
-            name="fullName"
-            value={form.fullName}
-            onChange={update}
-            autoComplete="name"
-          />
-
-          <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            name="username"
-            value={form.username}
-            onChange={update}
-            autoComplete="username"
-            required
-          />
-          {fields.username && (
-            <small className="field-error">{fields.username}</small>
-          )}
-
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={update}
-            autoComplete="email"
-            required
-          />
-          {fields.email && (
-            <small className="field-error">{fields.email}</small>
-          )}
-
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={update}
-            autoComplete="new-password"
-            required
-          />
-          <small className="muted">At least 8 characters.</small>
-          {fields.password && (
-            <small className="field-error">{fields.password}</small>
-          )}
-
-          <button type="submit" disabled={submitting}>
-            {submitting ? "Creating…" : "Create account"}
-          </button>
-        </form>
-
-        <p className="muted">
+    <AuthShell
+      title="Create an account"
+      subtitle="Set up a workspace and invite your team."
+      footer={
+        <>
           Already have an account? <Link to="/login">Sign in</Link>
-        </p>
-      </div>
-    </main>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} noValidate>
+        {error && <p className="alert">{error}</p>}
+
+        <label htmlFor="fullName">Full name</label>
+        <input
+          id="fullName"
+          name="fullName"
+          value={form.fullName}
+          onChange={update}
+          autoComplete="name"
+        />
+
+        <label htmlFor="username">Username</label>
+        <input
+          id="username"
+          name="username"
+          value={form.username}
+          onChange={update}
+          autoComplete="username"
+          required
+        />
+        {fields.username && (
+          <small className="field-error">{fields.username}</small>
+        )}
+
+        <label htmlFor="email">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={update}
+          autoComplete="email"
+          required
+        />
+        {fields.email && <small className="field-error">{fields.email}</small>}
+
+        <label htmlFor="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={update}
+          autoComplete="new-password"
+          required
+        />
+        <small className="muted">At least 8 characters.</small>
+        {fields.password && (
+          <small className="field-error">{fields.password}</small>
+        )}
+
+        <button type="submit" disabled={submitting}>
+          {submitting ? "Creating…" : "Create account"}
+        </button>
+      </form>
+    </AuthShell>
   );
 };
 

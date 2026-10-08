@@ -10,6 +10,8 @@ import MembersPanel from "../components/MembersPanel.jsx";
 import NotesPanel from "../components/NotesPanel.jsx";
 import Pager from "../components/Pager.jsx";
 import ConfirmButton from "../components/ConfirmButton.jsx";
+import Avatar from "../components/Avatar.jsx";
+import Icon from "../components/Icon.jsx";
 import { useResource } from "../hooks/useResource.js";
 
 const ProjectDetail = () => {
@@ -94,18 +96,18 @@ const ProjectDetail = () => {
     return (
       <Layout>
         <ErrorBanner error={fatal} />
-        <Link to="/" className="link">
-          ← Back to projects
-        </Link>
+        <Link to="/">← Back to projects</Link>
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <Link to="/" className="link back">
-        ← Projects
-      </Link>
+      <nav className="crumbs" aria-label="Breadcrumb">
+        <Link to="/">Projects</Link>
+        <Icon name="chevronRight" size={12} />
+        <span>{project.name}</span>
+      </nav>
 
       <div className="page-head">
         {editing ? (
@@ -140,22 +142,45 @@ const ProjectDetail = () => {
           </form>
         ) : (
           <>
-            <div>
-              <h1>{project.name}</h1>
-              {project.description && (
-                <p className="muted">{project.description}</p>
-              )}
+            <div className="project-id">
+              <div>
+                <h1>{project.name}</h1>
+                {project.description && (
+                  <p className="muted">{project.description}</p>
+                )}
+                {/* Who is on this project, as a glance rather than a trip to
+                    the members panel. */}
+                <div className="avatar-group" aria-hidden="true">
+                  {members.slice(0, 5).map((member) => (
+                    <Avatar
+                      key={member.user._id}
+                      name={member.user.fullName || member.user.username}
+                      size="sm"
+                    />
+                  ))}
+                  {members.length > 5 && (
+                    <span className="avatar sm more">
+                      +{members.length - 5}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
             {can.manageProject(role) && (
               <div className="actions">
-                <button type="button" className="ghost" onClick={startEditing}>
-                  Edit
+                <button
+                  type="button"
+                  className="outline"
+                  onClick={startEditing}
+                >
+                  <Icon name="pencil" size={14} /> Edit
                 </button>
                 <ConfirmButton
+                  className="ghost danger"
                   onConfirm={deleteProject}
                   confirmLabel="Really delete?"
                 >
-                  Delete project
+                  <Icon name="trash" size={14} /> Delete project
                 </ConfirmButton>
               </div>
             )}

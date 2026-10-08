@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { attachmentApi } from "../api/client.js";
 import ConfirmButton from "./ConfirmButton.jsx";
 import ErrorBanner from "./ErrorBanner.jsx";
+import Icon from "./Icon.jsx";
 
 const formatSize = (bytes) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -46,7 +47,9 @@ const Attachments = ({
 
   return (
     <div className="attachments">
-      <p className="muted small label-row">Attachments</p>
+      <p className="label-row">
+        <Icon name="paperclip" size={12} /> Attachments
+      </p>
 
       <ErrorBanner error={error} onDismiss={() => setError("")} />
 
@@ -68,7 +71,8 @@ const Attachments = ({
             <span className="muted small">{formatSize(file.size)}</span>
             {canDelete && (
               <ConfirmButton
-                className="link danger"
+                className="icon danger"
+                aria-label={`Delete ${file.filename}`}
                 confirmLabel="Sure?"
                 disabled={busy}
                 onConfirm={() =>
@@ -78,7 +82,7 @@ const Attachments = ({
                   })
                 }
               >
-                ✕
+                <Icon name="x" size={14} />
               </ConfirmButton>
             )}
           </li>

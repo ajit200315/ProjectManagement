@@ -8,28 +8,25 @@ import {
 } from "../api/client.js";
 import TaskCard from "./TaskCard.jsx";
 import ErrorBanner from "./ErrorBanner.jsx";
+import Icon from "./Icon.jsx";
+
+const BLANK = {
+  title: "",
+  description: "",
+  assignedTo: "",
+  priority: TASK_PRIORITY.MEDIUM,
+  dueDate: "",
+};
 
 const NewTaskForm = ({ projectId, members, onCreated }) => {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    assignedTo: "",
-    priority: TASK_PRIORITY.MEDIUM,
-    dueDate: "",
-  });
+  const [form, setForm] = useState(BLANK);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
   const close = () => {
     setOpen(false);
-    setForm({
-      title: "",
-      description: "",
-      assignedTo: "",
-      priority: TASK_PRIORITY.MEDIUM,
-      dueDate: "",
-    });
+    setForm(BLANK);
     setError("");
   };
 
@@ -59,7 +56,7 @@ const NewTaskForm = ({ projectId, members, onCreated }) => {
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)}>
-        New task
+        <Icon name="plus" /> New task
       </button>
     );
   }
@@ -136,7 +133,9 @@ const TaskBoard = ({
   return (
     <section>
       <div className="section-head">
-        <h2>Tasks</h2>
+        <h2>
+          <Icon name="board" size={15} /> Board
+        </h2>
         {canManage && (
           <NewTaskForm
             projectId={projectId}
@@ -147,7 +146,11 @@ const TaskBoard = ({
       </div>
 
       {filters && (
-        <div className="filters">
+        <div className="toolbar">
+          <span className="toolbar-label">
+            <Icon name="filter" size={13} /> Filter
+          </span>
+
           <select
             aria-label="Filter by priority"
             value={filters.priority}
@@ -174,17 +177,6 @@ const TaskBoard = ({
             ))}
           </select>
 
-          <select
-            aria-label="Sort by"
-            value={filters.sort}
-            onChange={(e) => onFilterChange({ sort: e.target.value })}
-          >
-            <option value="createdAt">Newest first</option>
-            <option value="dueDate">Due date</option>
-            <option value="priority">Priority</option>
-            <option value="title">Title</option>
-          </select>
-
           <label className="check">
             <input
               type="checkbox"
@@ -195,6 +187,19 @@ const TaskBoard = ({
             />
             Overdue only
           </label>
+
+          <span className="spacer" />
+
+          <select
+            aria-label="Sort by"
+            value={filters.sort}
+            onChange={(e) => onFilterChange({ sort: e.target.value })}
+          >
+            <option value="createdAt">Newest first</option>
+            <option value="dueDate">Due date</option>
+            <option value="priority">Priority</option>
+            <option value="title">Title</option>
+          </select>
         </div>
       )}
 
@@ -203,13 +208,16 @@ const TaskBoard = ({
           const inColumn = tasks.filter((task) => task.status === status);
           return (
             <div key={status} className="column">
-              <h3>
-                {STATUS_LABEL[status]}
+              <div className="column-head">
+                <span className={`dot ${status}`} aria-hidden="true" />
+                <h3>{STATUS_LABEL[status]}</h3>
                 <span className="count">{inColumn.length}</span>
-              </h3>
+              </div>
+
               {inColumn.length === 0 && (
-                <p className="muted small pad">Nothing here.</p>
+                <p className="column-empty">Nothing here yet</p>
               )}
+
               {inColumn.map((task) => (
                 <TaskCard
                   key={task._id}

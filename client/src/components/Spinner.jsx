@@ -1,5 +1,6 @@
 const Spinner = ({ label = "Loading…" }) => (
-  <p className="muted pad" role="status">
+  <p className="loading" role="status">
+    <span className="spinner" aria-hidden="true" />
     {label}
   </p>
 );

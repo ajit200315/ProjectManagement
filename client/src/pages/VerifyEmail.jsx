@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { authApi } from "../api/client.js";
+import AuthShell from "../components/AuthShell.jsx";
 
 /**
  * Target of the link in the verification email.
@@ -27,36 +28,33 @@ const VerifyEmail = () => {
   }, [token]);
 
   return (
-    <main className="shell">
-      <div className="card">
-        <h1>Email verification</h1>
+    <AuthShell
+      title="Email verification"
+      footer={
+        state.status !== "verifying" ? (
+          <Link to="/login">Go to sign in</Link>
+        ) : undefined
+      }
+    >
+      {state.status === "verifying" && (
+        <p className="muted">Verifying your email…</p>
+      )}
 
-        {state.status === "verifying" && (
-          <p className="muted">Verifying your email…</p>
-        )}
+      {state.status === "verified" && (
+        <p className="notice">Your email is verified.</p>
+      )}
 
-        {state.status === "verified" && (
-          <p className="notice">Your email is verified.</p>
-        )}
-
-        {state.status === "failed" && (
-          <>
-            <p className="alert">{state.message}</p>
-            <p className="muted">
-              This link works only once, so it may already have been used. Sign
-              in to check — if your email still shows as unverified, request a
-              new link from your account page.
-            </p>
-          </>
-        )}
-
-        {state.status !== "verifying" && (
+      {state.status === "failed" && (
+        <>
+          <p className="alert">{state.message}</p>
           <p className="muted">
-            <Link to="/login">Go to sign in</Link>
+            This link works only once, so it may already have been used. Sign in
+            to check — if your email still shows as unverified, request a new
+            link from your account page.
           </p>
-        )}
-      </div>
-    </main>
+        </>
+      )}
+    </AuthShell>
   );
 };
 

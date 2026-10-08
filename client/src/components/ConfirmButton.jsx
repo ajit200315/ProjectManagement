@@ -14,6 +14,7 @@ const ConfirmButton = ({
   className = "ghost danger",
   disabled = false,
   timeout = 4000,
+  ...rest
 }) => {
   const [armed, setArmed] = useState(false);
   const timer = useRef(null);
@@ -34,10 +35,15 @@ const ConfirmButton = ({
   return (
     <button
       type="button"
-      className={className}
+      // Armed widens an icon-only button so the confirm wording still fits.
+      className={`${className}${armed ? " armed" : ""}`}
       onClick={handleClick}
       disabled={disabled}
       aria-live="polite"
+      {...rest}
+      // An icon button's aria-label names the action, but once armed the
+      // visible wording is the question, and that is what must be announced.
+      aria-label={armed ? confirmLabel : rest["aria-label"]}
     >
       {armed ? confirmLabel : children}
     </button>

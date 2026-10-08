@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { authApi, ApiError } from "../api/client.js";
+import AuthShell from "../components/AuthShell.jsx";
 
 const ResetPassword = () => {
   const { resetToken } = useParams();
@@ -41,47 +42,42 @@ const ResetPassword = () => {
   };
 
   return (
-    <main className="shell">
-      <div className="card">
-        <h1>Choose a new password</h1>
+    <AuthShell
+      title="Choose a new password"
+      footer={<Link to="/login">Back to sign in</Link>}
+    >
+      <form onSubmit={handleSubmit} noValidate>
+        {error && <p className="alert">{error}</p>}
 
-        <form onSubmit={handleSubmit} noValidate>
-          {error && <p className="alert">{error}</p>}
+        <label htmlFor="password">New password</label>
+        <input
+          id="password"
+          type="password"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          autoComplete="new-password"
+          required
+        />
+        <small className="muted">At least 8 characters.</small>
+        {fields.newPassword && (
+          <small className="field-error">{fields.newPassword}</small>
+        )}
 
-          <label htmlFor="password">New password</label>
-          <input
-            id="password"
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            autoComplete="new-password"
-            required
-          />
-          <small className="muted">At least 8 characters.</small>
-          {fields.newPassword && (
-            <small className="field-error">{fields.newPassword}</small>
-          )}
+        <label htmlFor="confirm">Confirm new password</label>
+        <input
+          id="confirm"
+          type="password"
+          value={form.confirm}
+          onChange={(e) => setForm({ ...form, confirm: e.target.value })}
+          autoComplete="new-password"
+          required
+        />
 
-          <label htmlFor="confirm">Confirm new password</label>
-          <input
-            id="confirm"
-            type="password"
-            value={form.confirm}
-            onChange={(e) => setForm({ ...form, confirm: e.target.value })}
-            autoComplete="new-password"
-            required
-          />
-
-          <button type="submit" disabled={submitting}>
-            {submitting ? "Updating…" : "Update password"}
-          </button>
-        </form>
-
-        <p className="muted">
-          <Link to="/login">Back to sign in</Link>
-        </p>
-      </div>
-    </main>
+        <button type="submit" disabled={submitting}>
+          {submitting ? "Updating…" : "Update password"}
+        </button>
+      </form>
+    </AuthShell>
   );
 };
 

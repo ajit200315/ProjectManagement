@@ -9,6 +9,9 @@ import {
 import ErrorBanner from "./ErrorBanner.jsx";
 import ConfirmButton from "./ConfirmButton.jsx";
 import Attachments from "./Attachments.jsx";
+import Avatar from "./Avatar.jsx";
+import Icon from "./Icon.jsx";
+import Priority from "./Priority.jsx";
 
 /** Flags a date that has passed, unless the task is already done. */
 const DueDate = ({ value, status }) => {
@@ -21,8 +24,9 @@ const DueDate = ({ value, status }) => {
   const overdue = date.getTime() < now && status !== TASK_STATUS.DONE;
 
   return (
-    <span className={`badge ${overdue ? "overdue" : "dim"}`}>
-      {overdue ? "Overdue " : "Due "}
+    <span className={`badge round ${overdue ? "overdue" : "dim"}`}>
+      <Icon name={overdue ? "clock" : "calendar"} size={12} />
+      {overdue ? "Overdue · " : ""}
       {date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
     </span>
   );
@@ -146,62 +150,70 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
     });
 
   const done = subtasks?.filter((item) => item.isCompleted).length ?? 0;
+  const total = subtasks?.length ?? 0;
 
   return (
     <article className={`task ${busy ? "busy" : ""}`}>
       <div className="task-head">
         <button
           type="button"
-          className="link task-title"
+          className="task-title"
           onClick={toggleExpanded}
           aria-expanded={expanded}
         >
-          {expanded ? "▾" : "▸"} {task.title}
+          <Icon name="chevronRight" size={14} className="caret" />
+          {task.title}
         </button>
+
         {canManage && !editing && (
-          <span className="actions">
+          <span className="actions row-actions">
             <button
               type="button"
-              className="link"
+              className="icon"
               onClick={startEditing}
               disabled={busy}
+              title="Edit task"
               aria-label={`Edit ${task.title}`}
             >
-              Edit
+              <Icon name="pencil" />
             </button>
             <ConfirmButton
-              className="link danger"
+              className="icon danger"
               onConfirm={remove}
               disabled={busy}
               confirmLabel="Sure?"
+              aria-label={`Delete ${task.title}`}
             >
-              ✕
+              <Icon name="trash" />
             </ConfirmButton>
           </span>
         )}
       </div>
 
       {task.description && !editing && (
-        <p className="muted small">{task.description}</p>
+        <p className="task-desc clamp">{task.description}</p>
       )}
 
       <div className="task-meta">
-        {task.assignedTo ? (
-          <span className="badge">@{task.assignedTo.username}</span>
-        ) : (
-          <span className="badge dim">Unassigned</span>
-        )}
-        {task.priority && task.priority !== TASK_PRIORITY.MEDIUM && (
-          <span className={`badge priority-${task.priority}`}>
-            {PRIORITY_LABEL[task.priority]}
-          </span>
-        )}
+        <Priority value={task.priority} />
         {task.dueDate && <DueDate value={task.dueDate} status={task.status} />}
-        {subtasks?.length > 0 && (
-          <span className="badge dim">
-            {done}/{subtasks.length} done
+        {total > 0 && (
+          <span className="badge round dim">
+            <Icon name="check" size={12} />
+            {done}/{total}
           </span>
         )}
+        <span style={{ marginLeft: "auto" }}>
+          <Avatar
+            name={task.assignedTo?.username}
+            size="sm"
+            title={
+              task.assignedTo
+                ? `Assigned to ${task.assignedTo.username}`
+                : "Unassigned"
+            }
+          />
+        </span>
       </div>
 
       <ErrorBanner error={error} onDismiss={() => setError("")} />
@@ -269,8 +281,8 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
       {expanded && !editing && (
         <div className="task-body">
           {canManage && (
-            <label className="status-row">
-              <span className="muted small">Status</span>
+            <label className="field-row">
+              <span>Status</span>
               <select
                 value={task.status}
                 onChange={(event) => changeStatus(event.target.value)}
@@ -285,54 +297,62 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
             </label>
           )}
 
+          <p className="label-row">
+            <Icon name="check" size={12} />
+            Subtasks
+          </p>
+
           {subtasks === null && (
             <p className="muted small">Loading subtasks…</p>
           )}
 
-          {subtasks?.length > 0 && (
-            <ul className="subtasks">
-              {subtasks.map((subtask) => (
-                <li key={subtask._id}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={subtask.isCompleted}
-                      onChange={() => toggleSubTask(subtask)}
-                      disabled={busy}
-                    />
-                    <span className={subtask.isCompleted ? "struck" : ""}>
-                      {subtask.title}
-                    </span>
-                  </label>
-                  {canManage && (
-                    <ConfirmButton
-                      className="link danger"
-                      onConfirm={() => removeSubTask(subtask)}
-                      disabled={busy}
-                      confirmLabel="Sure?"
-                    >
-                      ✕
-                    </ConfirmButton>
-                  )}
-                </li>
-              ))}
-            </ul>
+          {total > 0 && (
+            <>
+              <div
+                className="meter"
+                role="progressbar"
+                aria-valuenow={done}
+                aria-valuemin={0}
+                aria-valuemax={total}
+                aria-label="Subtasks completed"
+              >
+                <span style={{ width: `${(done / total) * 100}%` }} />
+              </div>
+
+              <ul className="subtasks">
+                {subtasks.map((subtask) => (
+                  <li key={subtask._id}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={subtask.isCompleted}
+                        onChange={() => toggleSubTask(subtask)}
+                        disabled={busy}
+                      />
+                      <span className={subtask.isCompleted ? "struck" : ""}>
+                        {subtask.title}
+                      </span>
+                    </label>
+                    {canManage && (
+                      <ConfirmButton
+                        className="icon danger"
+                        onConfirm={() => removeSubTask(subtask)}
+                        disabled={busy}
+                        confirmLabel="Sure?"
+                        aria-label={`Delete subtask ${subtask.title}`}
+                      >
+                        <Icon name="x" size={14} />
+                      </ConfirmButton>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
 
-          {subtasks !== null && subtasks.length === 0 && (
+          {subtasks !== null && total === 0 && (
             <p className="muted small">No subtasks.</p>
           )}
-
-          <Attachments
-            projectId={projectId}
-            taskId={task._id}
-            attachments={attachments}
-            canDelete={canManage}
-            onChanged={async () => {
-              const detail = await taskApi.get(projectId, task._id);
-              setAttachments(detail.attachments ?? []);
-            }}
-          />
 
           {canManage && (
             <form className="subtask-add" onSubmit={addSubTask}>
@@ -347,6 +367,17 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
               </button>
             </form>
           )}
+
+          <Attachments
+            projectId={projectId}
+            taskId={task._id}
+            attachments={attachments}
+            canDelete={canManage}
+            onChanged={async () => {
+              const detail = await taskApi.get(projectId, task._id);
+              setAttachments(detail.attachments ?? []);
+            }}
+          />
         </div>
       )}
     </article>
