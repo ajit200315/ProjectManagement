@@ -6,21 +6,21 @@ import Icon from "./Icon.jsx";
  * place rather than as four unrelated forms.
  */
 const AuthShell = ({ title, subtitle, children, footer }) => (
-  <main>
-    <div>
-      <p>
-        <span>
+  <main className="shell">
+    <div className="card">
+      <p className="auth-brand">
+        <span className="brand-mark">
           <Icon name="board" size={15} />
         </span>
         Workspace
       </p>
 
       <h1>{title}</h1>
-      {subtitle && <p>{subtitle}</p>}
+      {subtitle && <p className="muted">{subtitle}</p>}
 
       {children}
 
-      {footer && <p>{footer}</p>}
+      {footer && <p className="muted card-foot">{footer}</p>}
     </div>
   </main>
 );

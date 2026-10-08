@@ -13,7 +13,7 @@ const Priority = ({ value }) => {
   if (!value) return null;
 
   return (
-    <span>
+    <span className={`prio prio-${value}`}>
       <Icon name={ICON[value]} size={14} strokeWidth={2.5} />
       {PRIORITY_LABEL[value]}
     </span>

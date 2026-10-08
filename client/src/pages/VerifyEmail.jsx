@@ -36,14 +36,18 @@ const VerifyEmail = () => {
         ) : undefined
       }
     >
-      {state.status === "verifying" && <p>Verifying your email…</p>}
+      {state.status === "verifying" && (
+        <p className="muted">Verifying your email…</p>
+      )}
 
-      {state.status === "verified" && <p>Your email is verified.</p>}
+      {state.status === "verified" && (
+        <p className="notice">Your email is verified.</p>
+      )}
 
       {state.status === "failed" && (
         <>
-          <p>{state.message}</p>
-          <p>
+          <p className="alert">{state.message}</p>
+          <p className="muted">
             This link works only once, so it may already have been used. Sign in
             to check — if your email still shows as unverified, request a new
             link from your account page.

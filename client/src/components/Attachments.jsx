@@ -46,20 +46,21 @@ const Attachments = ({
   };
 
   return (
-    <div>
-      <p>
+    <div className="attachments">
+      <p className="label-row">
         <Icon name="paperclip" size={12} /> Attachments
       </p>
 
       <ErrorBanner error={error} onDismiss={() => setError("")} />
 
-      {attachments.length === 0 && <p>None yet.</p>}
+      {attachments.length === 0 && <p className="muted small">None yet.</p>}
 
-      <ul>
+      <ul className="attachment-list">
         {attachments.map((file) => (
           <li key={file._id}>
             <button
               type="button"
+              className="link"
               disabled={busy}
               onClick={() =>
                 run(() => attachmentApi.download(projectId, taskId, file))
@@ -67,9 +68,10 @@ const Attachments = ({
             >
               {file.filename}
             </button>
-            <span>{formatSize(file.size)}</span>
+            <span className="muted small">{formatSize(file.size)}</span>
             {canDelete && (
               <ConfirmButton
+                className="icon danger"
                 aria-label={`Delete ${file.filename}`}
                 confirmLabel="Sure?"
                 disabled={busy}
@@ -91,10 +93,11 @@ const Attachments = ({
         ref={inputRef}
         type="file"
         aria-label="Attach a file"
+        className="file-input"
         onChange={onPick}
         disabled={busy}
       />
-      {busy && <p>Working…</p>}
+      {busy && <p className="muted small">Working…</p>}
     </div>
   );
 };

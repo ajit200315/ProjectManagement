@@ -62,7 +62,7 @@ const NewTaskForm = ({ projectId, members, onCreated }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="inline-form" onSubmit={handleSubmit}>
       <ErrorBanner error={error} />
       <input
         aria-label="Task title"
@@ -107,11 +107,11 @@ const NewTaskForm = ({ projectId, members, onCreated }) => {
         value={form.dueDate}
         onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
       />
-      <div>
+      <div className="actions">
         <button type="submit" disabled={saving}>
           {saving ? "Creating…" : "Create task"}
         </button>
-        <button type="button" onClick={close}>
+        <button type="button" className="ghost" onClick={close}>
           Cancel
         </button>
       </div>
@@ -132,7 +132,7 @@ const TaskBoard = ({
 
   return (
     <section>
-      <div>
+      <div className="section-head">
         <h2>
           <Icon name="board" size={15} /> Board
         </h2>
@@ -146,8 +146,8 @@ const TaskBoard = ({
       </div>
 
       {filters && (
-        <div>
-          <span>
+        <div className="toolbar">
+          <span className="toolbar-label">
             <Icon name="filter" size={13} /> Filter
           </span>
 
@@ -177,7 +177,7 @@ const TaskBoard = ({
             ))}
           </select>
 
-          <label>
+          <label className="check">
             <input
               type="checkbox"
               checked={filters.overdue === "true"}
@@ -187,6 +187,8 @@ const TaskBoard = ({
             />
             Overdue only
           </label>
+
+          <span className="spacer" />
 
           <select
             aria-label="Sort by"
@@ -201,17 +203,20 @@ const TaskBoard = ({
         </div>
       )}
 
-      <div>
+      <div className="board">
         {columns.map((status) => {
           const inColumn = tasks.filter((task) => task.status === status);
           return (
-            <div key={status}>
-              <div>
+            <div key={status} className="column">
+              <div className="column-head">
+                <span className={`dot ${status}`} aria-hidden="true" />
                 <h3>{STATUS_LABEL[status]}</h3>
-                <span>{inColumn.length}</span>
+                <span className="count">{inColumn.length}</span>
               </div>
 
-              {inColumn.length === 0 && <p>Nothing here yet</p>}
+              {inColumn.length === 0 && (
+                <p className="column-empty">Nothing here yet</p>
+              )}
 
               {inColumn.map((task) => (
                 <TaskCard

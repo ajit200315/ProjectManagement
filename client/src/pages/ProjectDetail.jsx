@@ -103,15 +103,15 @@ const ProjectDetail = () => {
 
   return (
     <Layout>
-      <nav aria-label="Breadcrumb">
+      <nav className="crumbs" aria-label="Breadcrumb">
         <Link to="/">Projects</Link>
         <Icon name="chevronRight" size={12} />
         <span>{project.name}</span>
       </nav>
 
-      <div>
+      <div className="page-head">
         {editing ? (
-          <form onSubmit={saveProject}>
+          <form className="inline-form" onSubmit={saveProject}>
             <input
               aria-label="Project name"
               value={draft.name}
@@ -127,40 +127,56 @@ const ProjectDetail = () => {
                 setDraft({ ...draft, description: e.target.value })
               }
             />
-            <div>
+            <div className="actions">
               <button type="submit" disabled={saving}>
                 {saving ? "Saving…" : "Save"}
               </button>
-              <button type="button" onClick={() => setEditing(false)}>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setEditing(false)}
+              >
                 Cancel
               </button>
             </div>
           </form>
         ) : (
           <>
-            <div>
+            <div className="project-id">
               <div>
                 <h1>{project.name}</h1>
-                {project.description && <p>{project.description}</p>}
+                {project.description && (
+                  <p className="muted">{project.description}</p>
+                )}
                 {/* Who is on this project, as a glance rather than a trip to
                     the members panel. */}
-                <div aria-hidden="true">
+                <div className="avatar-group" aria-hidden="true">
                   {members.slice(0, 5).map((member) => (
                     <Avatar
                       key={member.user._id}
                       name={member.user.fullName || member.user.username}
+                      size="sm"
                     />
                   ))}
-                  {members.length > 5 && <span>+{members.length - 5}</span>}
+                  {members.length > 5 && (
+                    <span className="avatar sm more">
+                      +{members.length - 5}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
             {can.manageProject(role) && (
-              <div>
-                <button type="button" onClick={startEditing}>
+              <div className="actions">
+                <button
+                  type="button"
+                  className="outline"
+                  onClick={startEditing}
+                >
                   <Icon name="pencil" size={14} /> Edit
                 </button>
                 <ConfirmButton
+                  className="ghost danger"
                   onConfirm={deleteProject}
                   confirmLabel="Really delete?"
                 >
@@ -174,7 +190,7 @@ const ProjectDetail = () => {
 
       <ErrorBanner error={actionError} onDismiss={() => setActionError("")} />
 
-      <div>
+      <div className="split">
         <div>
           <TaskBoard
             projectId={projectId}
@@ -192,7 +208,7 @@ const ProjectDetail = () => {
           />
         </div>
 
-        <div>
+        <div className="stack">
           <MembersPanel
             projectId={projectId}
             members={members}

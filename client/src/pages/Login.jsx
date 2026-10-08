@@ -60,8 +60,8 @@ const Login = () => {
       }
     >
       <form onSubmit={handleSubmit} noValidate>
-        {notice && <p>{notice}</p>}
-        {error && <p>{error}</p>}
+        {notice && <p className="notice">{notice}</p>}
+        {error && <p className="alert">{error}</p>}
 
         <label htmlFor="identifier">Email or username</label>
         <input
@@ -73,7 +73,9 @@ const Login = () => {
           required
         />
         {(fields.email || fields.username) && (
-          <small>{fields.email ?? fields.username}</small>
+          <small className="field-error">
+            {fields.email ?? fields.username}
+          </small>
         )}
 
         <label htmlFor="password">Password</label>
@@ -86,7 +88,9 @@ const Login = () => {
           autoComplete="current-password"
           required
         />
-        {fields.password && <small>{fields.password}</small>}
+        {fields.password && (
+          <small className="field-error">{fields.password}</small>
+        )}
 
         <button type="submit" disabled={submitting}>
           {submitting ? "Signing in…" : "Sign in"}

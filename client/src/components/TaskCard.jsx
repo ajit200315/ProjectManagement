@@ -24,7 +24,7 @@ const DueDate = ({ value, status }) => {
   const overdue = date.getTime() < now && status !== TASK_STATUS.DONE;
 
   return (
-    <span>
+    <span className={`badge round ${overdue ? "overdue" : "dim"}`}>
       <Icon name={overdue ? "clock" : "calendar"} size={12} />
       {overdue ? "Overdue · " : ""}
       {date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
@@ -153,17 +153,23 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
   const total = subtasks?.length ?? 0;
 
   return (
-    <article>
-      <div>
-        <button type="button" onClick={toggleExpanded} aria-expanded={expanded}>
-          <Icon name="chevronRight" size={14} />
+    <article className={`task ${busy ? "busy" : ""}`}>
+      <div className="task-head">
+        <button
+          type="button"
+          className="task-title"
+          onClick={toggleExpanded}
+          aria-expanded={expanded}
+        >
+          <Icon name="chevronRight" size={14} className="caret" />
           {task.title}
         </button>
 
         {canManage && !editing && (
-          <span>
+          <span className="actions row-actions">
             <button
               type="button"
+              className="icon"
               onClick={startEditing}
               disabled={busy}
               title="Edit task"
@@ -172,6 +178,7 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
               <Icon name="pencil" />
             </button>
             <ConfirmButton
+              className="icon danger"
               onConfirm={remove}
               disabled={busy}
               confirmLabel="Sure?"
@@ -183,20 +190,23 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
         )}
       </div>
 
-      {task.description && !editing && <p>{task.description}</p>}
+      {task.description && !editing && (
+        <p className="task-desc clamp">{task.description}</p>
+      )}
 
-      <div>
+      <div className="task-meta">
         <Priority value={task.priority} />
         {task.dueDate && <DueDate value={task.dueDate} status={task.status} />}
         {total > 0 && (
-          <span>
+          <span className="badge round dim">
             <Icon name="check" size={12} />
             {done}/{total}
           </span>
         )}
-        <span>
+        <span style={{ marginLeft: "auto" }}>
           <Avatar
             name={task.assignedTo?.username}
+            size="sm"
             title={
               task.assignedTo
                 ? `Assigned to ${task.assignedTo.username}`
@@ -209,7 +219,7 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
       <ErrorBanner error={error} onDismiss={() => setError("")} />
 
       {expanded && editing && (
-        <form onSubmit={saveEdit}>
+        <form className="task-edit" onSubmit={saveEdit}>
           <input
             aria-label="Task title"
             value={draft.title}
@@ -253,11 +263,15 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
             value={draft.dueDate}
             onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })}
           />
-          <div>
-            <button type="submit" disabled={busy}>
+          <div className="actions">
+            <button type="submit" className="small" disabled={busy}>
               Save
             </button>
-            <button type="button" onClick={() => setEditing(false)}>
+            <button
+              type="button"
+              className="ghost small"
+              onClick={() => setEditing(false)}
+            >
               Cancel
             </button>
           </div>
@@ -265,9 +279,9 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
       )}
 
       {expanded && !editing && (
-        <div>
+        <div className="task-body">
           {canManage && (
-            <label>
+            <label className="field-row">
               <span>Status</span>
               <select
                 value={task.status}
@@ -283,24 +297,29 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
             </label>
           )}
 
-          <p>
+          <p className="label-row">
             <Icon name="check" size={12} />
             Subtasks
           </p>
 
-          {subtasks === null && <p>Loading subtasks…</p>}
+          {subtasks === null && (
+            <p className="muted small">Loading subtasks…</p>
+          )}
 
           {total > 0 && (
             <>
               <div
+                className="meter"
                 role="progressbar"
                 aria-valuenow={done}
                 aria-valuemin={0}
                 aria-valuemax={total}
                 aria-label="Subtasks completed"
-              />
+              >
+                <span style={{ width: `${(done / total) * 100}%` }} />
+              </div>
 
-              <ul>
+              <ul className="subtasks">
                 {subtasks.map((subtask) => (
                   <li key={subtask._id}>
                     <label>
@@ -310,10 +329,13 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
                         onChange={() => toggleSubTask(subtask)}
                         disabled={busy}
                       />
-                      <span>{subtask.title}</span>
+                      <span className={subtask.isCompleted ? "struck" : ""}>
+                        {subtask.title}
+                      </span>
                     </label>
                     {canManage && (
                       <ConfirmButton
+                        className="icon danger"
                         onConfirm={() => removeSubTask(subtask)}
                         disabled={busy}
                         confirmLabel="Sure?"
@@ -328,17 +350,19 @@ const TaskCard = ({ projectId, task, members = [], canManage, onChanged }) => {
             </>
           )}
 
-          {subtasks !== null && total === 0 && <p>No subtasks.</p>}
+          {subtasks !== null && total === 0 && (
+            <p className="muted small">No subtasks.</p>
+          )}
 
           {canManage && (
-            <form onSubmit={addSubTask}>
+            <form className="subtask-add" onSubmit={addSubTask}>
               <input
                 aria-label="New subtask"
                 placeholder="Add a subtask"
                 value={newSubTask}
                 onChange={(event) => setNewSubTask(event.target.value)}
               />
-              <button type="submit" disabled={busy}>
+              <button type="submit" className="ghost small" disabled={busy}>
                 Add
               </button>
             </form>

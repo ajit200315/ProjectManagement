@@ -40,13 +40,13 @@ const ForgotPassword = () => {
       }
     >
       {sent ? (
-        <p>
+        <p className="notice">
           If that email is registered, a reset link is on its way. The link is
           valid for 20 minutes.
         </p>
       ) : (
         <form onSubmit={handleSubmit} noValidate>
-          {error && <p>{error}</p>}
+          {error && <p className="alert">{error}</p>}
 
           <label htmlFor="email">Email</label>
           <input

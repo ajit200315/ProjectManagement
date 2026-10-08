@@ -80,8 +80,9 @@ const PATHS = {
   x: <path d="M6 6l12 12M18 6 6 18" />,
 };
 
-const Icon = ({ name, size = 16, strokeWidth = 2 }) => (
+const Icon = ({ name, size = 16, className = "", strokeWidth = 2 }) => (
   <svg
+    className={className}
     width={size}
     height={size}
     viewBox="0 0 24 24"

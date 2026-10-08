@@ -49,14 +49,14 @@ const ChangePassword = () => {
   };
 
   return (
-    <section>
-      <div>
+    <section className="panel">
+      <div className="section-head">
         <h2>Change password</h2>
       </div>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form className="stacked" onSubmit={handleSubmit} noValidate>
         <ErrorBanner error={error} onDismiss={() => setError("")} />
-        {done && <p>Password changed.</p>}
+        {done && <p className="notice">Password changed.</p>}
 
         <label htmlFor="oldPassword">Current password</label>
         <input
@@ -77,7 +77,9 @@ const ChangePassword = () => {
           autoComplete="new-password"
           required
         />
-        {fields.newPassword && <small>{fields.newPassword}</small>}
+        {fields.newPassword && (
+          <small className="field-error">{fields.newPassword}</small>
+        )}
 
         <label htmlFor="confirm">Confirm new password</label>
         <input
@@ -105,14 +107,14 @@ const EmailVerification = () => {
 
   if (user.isEmailVerified) {
     return (
-      <section>
-        <div>
+      <section className="panel">
+        <div className="section-head">
           <h2>Email</h2>
-          <span>
+          <span className="badge round ok">
             <Icon name="check" size={12} /> Verified
           </span>
         </div>
-        <p>{user.email}</p>
+        <p className="muted">{user.email}</p>
       </section>
     );
   }
@@ -131,14 +133,19 @@ const EmailVerification = () => {
   };
 
   return (
-    <section>
+    <section className="panel">
       <h2>Email</h2>
-      <p>{user.email} — not verified yet.</p>
+      <p className="muted">{user.email} — not verified yet.</p>
 
       <ErrorBanner error={error} onDismiss={() => setError("")} />
-      {sent && <p>Verification email sent.</p>}
+      {sent && <p className="notice">Verification email sent.</p>}
 
-      <button type="button" onClick={resend} disabled={sending || sent}>
+      <button
+        type="button"
+        className="ghost"
+        onClick={resend}
+        disabled={sending || sent}
+      >
         {sending ? "Sending…" : "Resend verification email"}
       </button>
     </section>
@@ -150,19 +157,19 @@ const Account = () => {
 
   return (
     <Layout>
-      <div>
-        <div>
-          <Avatar name={user.fullName || user.username} />
+      <div className="page-head">
+        <div className="who-head">
+          <Avatar name={user.fullName || user.username} size="xl" />
           <div>
             <h1>{user.fullName || user.username}</h1>
-            <p>
+            <p className="muted">
               @{user.username} · {user.email}
             </p>
           </div>
         </div>
       </div>
 
-      <div>
+      <div className="stack">
         <EmailVerification />
         <ChangePassword />
       </div>
